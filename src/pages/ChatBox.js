@@ -92,7 +92,10 @@ class ChatBox extends React.Component {
                 height: 19,
                 text: '个人名片',
                 source: require('../assets/images/icon-card.png'),
-                onClick: () => this.props.navigation.navigate('SendRedBags')
+                onClick: () => this.props.navigation.navigate('SendRedBags',{
+                    targetId:this.targetId,
+                    isPerson:!/group/.test(this.targetId)
+                })
             },
 
             {

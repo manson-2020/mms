@@ -205,24 +205,23 @@ export default class Option extends React.Component {
             const option = {
                 mediaType: 'photo',
                 cropping: true,
-                includeBase64: true
+                includeBase64: true,
+                multiple:false,
             };
             const result = type === 'album' ? await MediaUtils.openPicker(option) : await MediaUtils.openCamera(option);
             const img='data:image/jpg;base64,'+result.data;
             const url = '/index/userinfo/updateheaderimg';
             const token=await AsyncStorage.getItem('token').catch(()=>alert('获取token失败'));
-            console.log({token,img});
             apiRequest(url,{
                 method: 'post',
                 mode: "cors",
                 body: JSON.stringify({token,img})
             }).then((res)=>{
-                console.log(res)
-                if(res['code'] ===200){
+                if(res['code'] == 200){
                     alert(res['msg']);
                     this.setState((pre)=>{
-                        const data=pre['data'][0]['image']=res['res']['img'];
-                        return {data}
+                        pre['data'][0]['image']=res['res']['img'];
+                        return {data:pre.data}
                     })
                 }
             },(e)=>{
