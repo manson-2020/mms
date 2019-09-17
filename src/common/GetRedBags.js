@@ -48,7 +48,7 @@ export default class name extends Component {
                             <Text style={{fontSize: 16, color: '#F5E175', paddingTop: 15}}>赵浩生</Text>
                             <Text style={{fontSize: 24, color: '#F5E175', paddingTop: 35}}>恭喜发财,吉祥如意</Text>
                         </View>
-                        <Text style={{width:'100%',textAlign:'center',fontSize: 24, color: '#F5E175', paddingTop: 35}}>红包超时未领取,已退回</Text>
+                        <Text style={{width:'100%',textAlign:'center',fontSize: 16, color: '#F5E175', paddingTop: 35}}>红包超时未领取,已退回</Text>
                         {/*<Image style={{*/}
                             {/*position: 'absolute',*/}
                             {/*bottom: 72,*/}
