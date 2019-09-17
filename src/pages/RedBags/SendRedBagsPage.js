@@ -48,7 +48,7 @@ export default class SendRedBagsPage extends Component {
      * @returns {Promise<void>}
      */
     async sendRedBags(pay_pwd) {
-        this.props.navigation.goBack();
+
         const token = await AsyncStorage.getItem('token');
         const url = '/index/redmoney/redmoney_create';
         const {rm_money} = this.state;
@@ -65,11 +65,14 @@ export default class SendRedBagsPage extends Component {
             mode: "cors",
             body: JSON.stringify(data)
         }).then((res) => {
-            alert(res['msg']);
+            console.log(res);
             if(res['code'] == 200){
                 alert(res['msg']);
-                this.hb_orderid=res['hb_orderid'];
-                this.callBack && this.callBack(res['hb_orderid'],true)
+                this.props.navigation.goBack();
+                const hb_orderid=res['res']['hb_orderid'];
+                this.callBack && this.callBack(hb_orderid,true)
+            }else {
+                alert('支付密码错误请重试')
             }
         }, (error) => {
             console.log(error)
@@ -126,7 +129,7 @@ export default class SendRedBagsPage extends Component {
                     rm_money={rm_money}
                     close={() => this.closePayPassword()}
                     show={() => this.showPayPassword()}
-                    callBack={async (pay_pwd) => this.sendRedBags(pay_pwd)}
+                    callBack={ (pay_pwd) => this.sendRedBags(pay_pwd)}
                 /> : null}
             </ScrollView>
         </View>

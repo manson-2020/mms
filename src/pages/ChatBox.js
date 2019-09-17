@@ -61,7 +61,9 @@ class ChatBox extends React.Component {
             imgActiveIndex: 0,
             showVoiceBtn: false,
             currentVoice: '',
-        };
+            redBagsItem: null,
+        }
+        ;
         this.dataNum = 9;
         this.bottomData = [
             {
@@ -96,6 +98,7 @@ class ChatBox extends React.Component {
                     targetId: this.targetId,
                     isPerson: !/group/.test(this.targetId),
                     callBack: (hb_orderid, suc) => {
+                        console.log(hb_orderid)
                         if (suc) {
                             const content = {
                                 objectName: ObjectName.Text,
@@ -103,6 +106,7 @@ class ChatBox extends React.Component {
                                 extra: JSON.stringify({
                                     type: 'redBags',
                                     hb_orderid,
+                                    isGet: false,
                                 })
                             };
                             MediaUtils.sendMessage({
@@ -112,7 +116,7 @@ class ChatBox extends React.Component {
                                     const nmes = {
                                         ...itemMes,
                                         senderUserId: this.state.selfInfo.ry_userid,
-                                        conversationType: this.conversationType
+                                        conversationType: this.conversationType,
                                     };
                                     this.setState((pre) => ({
                                         msgData: [nmes, ...pre.msgData],
@@ -158,7 +162,6 @@ class ChatBox extends React.Component {
             }
         ];
         this.targetId = this.info.userid || this.info.group_id;
-
         this.conversationType = (this.targetId.indexOf('group') == -1) ? ConversationType.PRIVATE : ConversationType.GROUP
     }
 
@@ -174,6 +177,7 @@ class ChatBox extends React.Component {
                     })
                 }
             ).then(result => {
+                console.log('sef', result);
                 this.setState({
                     selfInfo: result.res
                 });
@@ -195,6 +199,7 @@ class ChatBox extends React.Component {
                     result.res.map(item => {
                         obj[item.ry_userid] = item;
                     });
+                    console.log('groupListInfo', obj);
                     this.setState({
                         groupListInfo: obj
                     }, () => {
@@ -223,7 +228,10 @@ class ChatBox extends React.Component {
                         token: value[0][1],
                         userid: this.targetId,
                     })
-                }).then(req => this.setState({userInfo: req.res}))
+                }).then(req => {
+                    console.log('userInfo', req.res)
+                    this.setState({userInfo: req.res})
+                })
 
                 getHistoryMessages(ConversationType.PRIVATE, this.targetId, [ObjectName.Text, ObjectName.Image, ObjectName.File], 0, 30)
                     .then(result => {
@@ -284,6 +292,10 @@ class ChatBox extends React.Component {
 
 
     ChatFrame(item, index) {
+        const {groupListInfo, selfInfo, userInfo} = this.state;
+        const {senderUserId} = item;
+        const targetHeader = !/group/.test(this.targetId) ? userInfo.header_img : (groupListInfo[senderUserId] ? groupListInfo[senderUserId].header_img : "");
+        const targetName = groupListInfo[senderUserId] && (groupListInfo[senderUserId]['nickname'] || groupListInfo[senderUserId]['username']) || '';
         return (
             <View>
                 {item.senderUserId == this.state.selfInfo.ry_userid ?
@@ -305,13 +317,12 @@ class ChatBox extends React.Component {
                                     marginBottom: 6
                                 }}>
                                     {
-                                        this.state.groupListInfo[this.state.selfInfo.ry_userid] &&
-                                        (this.state.groupListInfo[this.state.selfInfo.ry_userid].nickname || this.state.groupListInfo[this.state.selfInfo.ry_userid].username)
+                                        targetName
                                     }
                                 </Text>
                             }
                             <View style={{
-                                backgroundColor: "rgba(25,111,240,0.8)",
+                                backgroundColor: "#6fff5f",
                                 maxWidth: 220,
                                 marginRight: 10,
                                 borderRadius: 5
@@ -321,7 +332,7 @@ class ChatBox extends React.Component {
                         </View>
                         <Image
                             style={{width: 38, height: 38, borderRadius: 19}}
-                            source={{uri: this.state.selfInfo.header_img}}/>
+                            source={{uri: selfInfo.header_img}}/>
 
                     </View>
                     :
@@ -330,12 +341,7 @@ class ChatBox extends React.Component {
                             <Image
                                 style={{width: 38, height: 38, borderRadius: 19}}
                                 source={{
-                                    uri: this.targetId.indexOf('group') ?
-                                        this.state.userInfo.header_img :
-                                        (this.state.groupListInfo[item.senderUserId] ?
-                                            this.state.groupListInfo[item.senderUserId].header_img
-                                            :
-                                            "")
+                                    uri: targetHeader
                                 }}
                             />
                         </TouchableWithoutFeedback>
@@ -350,18 +356,16 @@ class ChatBox extends React.Component {
                                     marginBottom: 6
                                 }}>
                                     {
-                                        this.state.groupListInfo[item.senderUserId] &&
-                                        (this.state.groupListInfo[item.senderUserId].nickname || this.state.groupListInfo[item.senderUserId].username)
+                                        targetName
                                     }
                                 </Text>
                             }
                             <View style={{backgroundColor: "#fff", maxWidth: 220, marginLeft: 10, borderRadius: 5}}>
                                 <View style={{
-                                    padding: 12,
                                     color: "#333",
                                     fontSize: 16,
                                     lineHeight: 21
-                                }}>{this.showMesByObjectName(item, index, false)}</View>
+                                }}>{this.showMesByObjectName(item, index, false,)}</View>
                             </View>
                         </View>
                     </View>
@@ -479,28 +483,58 @@ class ChatBox extends React.Component {
         })
     }
 
+    /**
+     * 打开红包
+     */
+    openRedBags(item, index, isSelf,extra) {
+        this.setState((pre) => {
+            let redBagsItem = {};
+            if (isSelf) {
+                redBagsItem = {
+                    ...pre.selfInfo,
+                };
+                return null
+            } else {
+                if (/group/.test(this.targetId)) {
+                    redBagsItem = {
+                        ...pre.groupListInfo[senderUserId],
+                    }
+                } else {
+                    redBagsItem = {
+                        ...pre.userInfo,
+                    }
+                }
+            }
+            return {
+                redBagsItem: {...redBagsItem, ...JSON.parse(extra), messageUId: item['messageUId'], index}
+            }
+        }, () => {
+            this.getRedBags.show()
+        });
+    }
+
     _renderTxtMsg(item, index, isSelf) {
-        const {remote, thumbnail, local, objectName, extra,content} = item.content;
-        if (!extra){
+        const {extra, content, senderUserId} = item.content;
+        if (!extra) {
             return <Text style={[styles.textMes, {color: isSelf ? '#fff' : '#333'}]}>
-                {content['content']}
+                {content}
             </Text>;
         }
         try {
-            const extraData=JSON.parse(extra);
-            if(extraData['type'] === 'redBags'){
-                return <View style={{width:219,height:89,
-                    borderRadius:5,backgroundColor:'#fff'}}>
-                    <View style={{height:64,backgroundColor:'#FF5353',
-                        paddingLeft:15,paddingRight:15,
-                        flexDirection:'row',alignItems:'center',}}>
-                        <Image style={{width:32,height:37,marginRight:12}} source={require('../assets/img/img-red-envelope.png')}/>
-                        <Text style={{color:'#fff'}}>恭喜发财，红包拿来</Text>
+            const {hb_orderid, type, isGet} = JSON.parse(extra);
+            if (type === 'redBags') {
+                return <TouchableOpacity activeOpacity={1}
+                                         onPress={() => this.openRedBags(item, index, isSelf,extra)}
+                                         style={styles.redBagsWrap}>
+                    <View style={[styles.redBagsTop, {backgroundColor: isGet ? '#BC3D3D' : '#FF5353'}]}>
+                        <Image style={{width: 32, height: 37, marginRight: 12}}
+                               source={isGet ? require('../assets/img/img-open-red-envelope.png') : require('../assets/img/img-red-envelope.png')}/>
+                        <Text style={{color: '#fff'}}>恭喜发财，红包拿来</Text>
                     </View>
-                    <Text style={{paddingLeft:15}} >彩信红包</Text>
-                </View>
+                    <Text style={{paddingLeft: 15}}>彩信红包</Text>
+                </TouchableOpacity>
             }
-        }catch (e) {
+        } catch (e) {
             return null
         }
 
@@ -808,7 +842,40 @@ class ChatBox extends React.Component {
                         ref={(ref) => this.playVoiceMes = ref}
                         url={currentVoice}
                     /> : null}
-                    <GetRedBags header_img={this.state.selfInfo.header_img}/>
+                    <GetRedBags ref={(ref) => this.getRedBags = ref}
+                                callBack={async (rm_orderid) => {
+                                    const {hb_orderid, messageUId, index} = this.state.redBagsItem;
+                                    const token = await AsyncStorage.getItem('token');
+                                    const url = '/index/redmoney/get_rm';
+                                    apiRequest(url, {
+                                        method: 'post',
+                                        mode: "cors",
+                                        body: JSON.stringify({
+                                            token,
+                                            rm_orderid: hb_orderid
+                                        })
+                                    }).then((res) => {
+                                        console.log(res);
+                                        if (res['code'] == 200) {
+                                            this.setState((pre) => {
+                                                const msgData = pre.msgData;
+                                                try {
+                                                    const extra = JSON.parse(msgData[index]['content']['extra']);
+                                                    extra['isGet'] = true;
+                                                    msgData[index]['content']['extra'] = JSON.stringify(extra);
+                                                    console.log(msgData)
+                                                    return {msgData}
+                                                } catch (e) {
+
+                                                }
+
+                                            })
+                                        }else {
+                                            alert(res['msg'])
+                                        }
+                                    })
+                                }}
+                                redBagsItem={this.state.redBagsItem}/>
                 </SafeAreaView>
             </View>
         );
@@ -914,7 +981,21 @@ const styles = StyleSheet.create({
         paddingRight: 10,
         borderRadius: 3,
     },
-    textMes: {padding: 12, fontSize: 16, lineHeight: 21}
+    textMes: {padding: 12, fontSize: 16, lineHeight: 21},
+    redBagsWrap: {
+        width: 219,
+        height: 89,
+        borderRadius: 5,
+        backgroundColor: '#fff'
+    },
+    redBagsTop: {
+        height: 64,
+        backgroundColor: '#FF5353',
+        paddingLeft: 15,
+        paddingRight: 15,
+        flexDirection: 'row',
+        alignItems: 'center',
+    }
 });
 
 export default ChatBox;

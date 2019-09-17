@@ -1,15 +1,34 @@
 import React, {Component} from 'react';
-import {View, Text, StyleSheet, ImageBackground, StatusBar, TouchableOpacity, Image} from 'react-native'
+import {
+    View,
+    Text,
+    StyleSheet,
+    ImageBackground,
+    StatusBar,
+    TouchableOpacity,
+    Image,
+    TouchableWithoutFeedback,
+} from 'react-native'
 import Modal from 'react-native-modal'
 import EvilIcons from "react-native-vector-icons/EvilIcons";
+import propTypes from 'prop-types'
 
 export default class name extends Component {
+    static propTypes = {
+        redBagsItem: propTypes.object
+    };
+    static defaultProps = {};
+
     constructor(props) {
         super(props);
         this.state = {
-            isVisible: true,
+            isVisible: false,
 
         }
+    }
+
+    componentWillUpdate(nextProps: Readonly<P>, nextState: Readonly<S>, nextContext: any): void {
+
     }
 
     hide() {
@@ -21,8 +40,12 @@ export default class name extends Component {
     }
 
     render() {
-        return <View style={styles.container}>
-            <StatusBar hidden={true}/>
+        const {redBagsItem,callBack} = this.props;
+        if (!redBagsItem) return null;
+        const {header_img, nickname, username, hb_orderid,isGet} = redBagsItem;
+
+        return <View>
+            <StatusBar hidden={this.state.isVisible}/>
             <Modal
                 isVisible={this.state.isVisible}
                 animationIn="fadeIn"
@@ -41,23 +64,21 @@ export default class name extends Component {
                         <TouchableOpacity onPress={() => this.hide()} style={styles.closeWrap}>
                             <EvilIcons name={'close'} color={'#fff'} size={26}/>
                         </TouchableOpacity>
-                        <View style={{alignItems: 'center', paddingTop: 20, height: 270}}>
-                            {this.props.header_img ? <Image
-                                style={{width: 60, height: 60, borderRadius: 30}}
-                                source={{uri: this.props.header_img}}/> : null}
-                            <Text style={{fontSize: 16, color: '#F5E175', paddingTop: 15}}>赵浩生</Text>
-                            <Text style={{fontSize: 24, color: '#F5E175', paddingTop: 35}}>恭喜发财,吉祥如意</Text>
+                        <View style={styles.mainWrap}>
+                            <Image
+                                style={styles.header}
+                                source={{uri: header_img}}/>
+                            <Text style={styles.name}>{nickname || username}</Text>
+                            <Text style={styles.descText}>恭喜发财,吉祥如意</Text>
                         </View>
-                        <Text style={{width:'100%',textAlign:'center',fontSize: 16, color: '#F5E175', paddingTop: 35}}>红包超时未领取,已退回</Text>
-                        {/*<Image style={{*/}
-                            {/*position: 'absolute',*/}
-                            {/*bottom: 72,*/}
-                            {/*left: '50%',*/}
-                            {/*width: 70,*/}
-                            {/*height: 70,*/}
-                            {/*marginLeft: -35*/}
-                        {/*}}*/}
-                               {/*source={require('../assets/img/icon-open.png')}/>*/}
+                        {/*<Text style={styles.backText}>红包超时未领取,已退回</Text>*/}
+                        <TouchableWithoutFeedback onPress={() => {
+                            this.hide();
+                            callBack && callBack()
+                        }}>
+                            <Image style={styles.openIcon}
+                                   source={require('../assets/img/icon-open.png')}/>
+                        </TouchableWithoutFeedback>
                     </ImageBackground>
                 </View>
             </Modal>
@@ -75,4 +96,40 @@ const styles = StyleSheet.create({
         paddingRight: 10,
         width: '100%'
     },
+    mainWrap: {
+        alignItems: 'center',
+        paddingTop: 20,
+        height: 270
+    },
+    header: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+    },
+    name: {
+        fontSize: 16,
+        color: '#F5E175',
+        paddingTop: 15,
+    },
+    descText: {
+        fontSize: 24,
+        color: '#F5E175',
+        paddingTop: 35
+    },
+    backText: {
+        width: '100%',
+        textAlign: 'center',
+        fontSize: 16,
+        color: '#F5E175',
+        paddingTop: 25
+    },
+    openIcon: {
+        position: 'absolute',
+        bottom: 72,
+        left: '50%',
+        width: 70,
+        height: 70,
+        marginLeft: -35,
+        zIndex: 10
+    }
 });
