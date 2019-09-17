@@ -13,7 +13,7 @@ const {width, height} = Dimensions.get('window');
 
 export default class InputPayPasswordModal extends Component {
     static propTypes = {
-        rm_money: propTypes.number.isRequired,
+        rm_money: propTypes.number,
         close: propTypes.func.isRequired,
         show: propTypes.func.isRequired,
         callBack: propTypes.func,

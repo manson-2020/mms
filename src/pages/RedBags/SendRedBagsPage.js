@@ -27,6 +27,7 @@ export default class SendRedBagsPage extends Component {
         super(props);
         this.isPerson = this.props.navigation.getParam('isPerson');
         this.targetId = this.props.navigation.getParam('targetId');
+        this.callBack = this.props.navigation.getParam('callBack');
         this.state = {
             rm_money: 0,
             max_rev: 0,
@@ -46,7 +47,7 @@ export default class SendRedBagsPage extends Component {
      * 发送红包
      * @returns {Promise<void>}
      */
-    async sendRedBags() {
+    async sendRedBags(pay_pwd) {
         this.props.navigation.goBack();
         const token = await AsyncStorage.getItem('token');
         const url = '/index/redmoney/redmoney_create';
@@ -59,13 +60,17 @@ export default class SendRedBagsPage extends Component {
             rev_userid: this.targetId
 
         };
-        console.log(data);
         apiRequest(url, {
             method: 'post',
             mode: "cors",
             body: JSON.stringify(data)
         }).then((res) => {
-            console.log(res)
+            alert(res['msg']);
+            if(res['code'] == 200){
+                alert(res['msg']);
+                this.hb_orderid=res['hb_orderid'];
+                this.callBack && this.callBack(res['hb_orderid'],true)
+            }
         }, (error) => {
             console.log(error)
         })

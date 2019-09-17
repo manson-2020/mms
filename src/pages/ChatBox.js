@@ -32,7 +32,7 @@ import {
 import RNThumbnail from "react-native-thumbnail";
 import VideoPlay from '../common/VideoPlay'
 import ViewerImageModal from '../common/ViewerImageModal'
-import RNFS from 'react-native-fs';
+import GetRedBags from '../common/GetRedBags'
 
 
 // 18981796331
@@ -92,9 +92,35 @@ class ChatBox extends React.Component {
                 height: 19,
                 text: '个人名片',
                 source: require('../assets/images/icon-card.png'),
-                onClick: () => this.props.navigation.navigate('SendRedBags',{
-                    targetId:this.targetId,
-                    isPerson:!/group/.test(this.targetId)
+                onClick: (hb_orderid) => this.props.navigation.navigate('SendRedBags', {
+                    targetId: this.targetId,
+                    isPerson: !/group/.test(this.targetId),
+                    callBack: (hb_orderid, suc) => {
+                        if (suc) {
+                            const content = {
+                                objectName: ObjectName.Text,
+                                content: "红包",
+                                extra: JSON.stringify({
+                                    type: 'redBags',
+                                    hb_orderid,
+                                })
+                            };
+                            MediaUtils.sendMessage({
+                                targetId: this.targetId,
+                                content: content,
+                                getLocalMes: (itemMes) => {
+                                    const nmes = {
+                                        ...itemMes,
+                                        senderUserId: this.state.selfInfo.ry_userid,
+                                        conversationType: this.conversationType
+                                    };
+                                    this.setState((pre) => ({
+                                        msgData: [nmes, ...pre.msgData],
+                                    }));
+                                }
+                            })
+                        }
+                    }
                 })
             },
 
@@ -453,6 +479,34 @@ class ChatBox extends React.Component {
         })
     }
 
+    _renderTxtMsg(item, index, isSelf) {
+        const {remote, thumbnail, local, objectName, extra,content} = item.content;
+        if (!extra){
+            return <Text style={[styles.textMes, {color: isSelf ? '#fff' : '#333'}]}>
+                {content['content']}
+            </Text>;
+        }
+        try {
+            const extraData=JSON.parse(extra);
+            if(extraData['type'] === 'redBags'){
+                return <View style={{width:219,height:89,
+                    borderRadius:5,backgroundColor:'#fff'}}>
+                    <View style={{height:64,backgroundColor:'#FF5353',
+                        paddingLeft:15,paddingRight:15,
+                        flexDirection:'row',alignItems:'center',}}>
+                        <Image style={{width:32,height:37,marginRight:12}} source={require('../assets/img/img-red-envelope.png')}/>
+                        <Text style={{color:'#fff'}}>恭喜发财，红包拿来</Text>
+                    </View>
+                    <Text style={{paddingLeft:15}} >彩信红包</Text>
+                </View>
+            }
+        }catch (e) {
+            return null
+        }
+
+
+    }
+
     /**
      *通过消息的不同类型显示不同的ui，以及不同的操作
      * @param item
@@ -466,8 +520,7 @@ class ChatBox extends React.Component {
              * 文本消息
              */
             case 'RC:TxtMsg':
-                return <Text
-                    style={[styles.textMes, {color: isSelf ? '#fff' : '#333'}]}>{content['content']}</Text>;
+                return this._renderTxtMsg(item, index, isSelf);
             /**
              * 图片消息
              */
@@ -479,7 +532,6 @@ class ChatBox extends React.Component {
              * 文件消息
              */
             case 'RC:FileMsg':
-                if (extra === 'file:///storage/emulated/0/thumb/thumb-16bd35ca-c8b7-4c27-bd40-a411c77c7749.jpeg') return null;
                 let extradata = null;
                 try {
                     extradata = extra && JSON.parse(extra);
@@ -638,7 +690,7 @@ class ChatBox extends React.Component {
         };
         MediaUtils.sendMediaMessage({
             targetId: this.targetId,
-            content: content,
+            content,
             getLocalMes: (itemMes) => {
                 const nmes = {
                     ...itemMes,
@@ -756,6 +808,7 @@ class ChatBox extends React.Component {
                         ref={(ref) => this.playVoiceMes = ref}
                         url={currentVoice}
                     /> : null}
+                    <GetRedBags header_img={this.state.selfInfo.header_img}/>
                 </SafeAreaView>
             </View>
         );
