@@ -22,6 +22,7 @@ import BudgetScreen from './pages/Budget';
 import Test from './pages/Test';
 import QrScand from './common/qrScand';
 import SendRedBagsPage from './pages/RedBags/SendRedBagsPage';
+import RedBagsDetailPage from './pages/RedBags/RedBagsDetailPage';
 
 global.formDataObject = obj => {
     let formData = new FormData();
@@ -206,6 +207,7 @@ const AppStack = createStackNavigator({
     Budget: BudgetScreen,
     QrScand: QrScand,
     SendRedBags: SendRedBagsPage,
+    RedBagsDetail: RedBagsDetailPage,
     Test: Test
 }, {
         headerMode: 'none',

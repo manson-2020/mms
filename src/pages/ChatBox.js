@@ -97,9 +97,11 @@ class ChatBox extends React.Component {
                 onClick: (hb_orderid) => this.props.navigation.navigate('SendRedBags', {
                     targetId: this.targetId,
                     isPerson: !/group/.test(this.targetId),
-                    callBack: (hb_orderid, suc) => {
+                    callBack: async (hb_orderid, suc) => {
                         console.log(hb_orderid)
                         if (suc) {
+                            const token = await AsyncStorage.getItem('token');
+                            const statusRes = await this.getRedBagsStatus(token, hb_orderid).catch((e) => console.log(e));
                             const content = {
                                 objectName: ObjectName.Text,
                                 content: "红包",
@@ -107,7 +109,7 @@ class ChatBox extends React.Component {
                                     type: 'redBags',
                                     hb_orderid,
                                     isGet: false,
-                                })
+                                }),
                             };
                             MediaUtils.sendMessage({
                                 targetId: this.targetId,
@@ -117,6 +119,7 @@ class ChatBox extends React.Component {
                                         ...itemMes,
                                         senderUserId: this.state.selfInfo.ry_userid,
                                         conversationType: this.conversationType,
+                                        redBagsCode: statusRes.code
                                     };
                                     this.setState((pre) => ({
                                         msgData: [nmes, ...pre.msgData],
@@ -204,8 +207,13 @@ class ChatBox extends React.Component {
                         groupListInfo: obj
                     }, () => {
                         getHistoryMessages(ConversationType.GROUP, this.targetId, [ObjectName.Text, ObjectName.Image, ObjectName.File], 0, 30)
-                            .then(result => {
+                            .then(async result => {
                                 console.log(result)
+                                const status = await this.setStatusRedBags(result, value[0][1]);
+                                status.forEach((itemStatus) => {
+                                    const {index, code} = itemStatus;
+                                    result[index]['redBagsCode'] = code
+                                });
                                 const imageUrls = [];
                                 result.map((item) => {
                                     const {objectName, remote, local, thumbnail} = item['content'];
@@ -234,8 +242,14 @@ class ChatBox extends React.Component {
                 })
 
                 getHistoryMessages(ConversationType.PRIVATE, this.targetId, [ObjectName.Text, ObjectName.Image, ObjectName.File], 0, 30)
-                    .then(result => {
+                    .then(async result => {
                         console.log(result)
+                        const status = await this.setStatusRedBags(result, value[0][1]);
+                        status.forEach((itemStatus) => {
+                            const {index, code} = itemStatus;
+                            result[index]['redBagsCode'] = code
+                        });
+
                         const imageUrls = [];
                         result.map((item) => {
                             const {objectName, remote, local, thumbnail} = item['content'];
@@ -252,7 +266,6 @@ class ChatBox extends React.Component {
             }
         });
 
-
         //监听接收消息
         this.listener = addReceiveMessageListener(result => {
             if (result.message.targetId == this.targetId) {
@@ -268,6 +281,39 @@ class ChatBox extends React.Component {
         this.listener = null;
     }
 
+    setStatusRedBags(result, token) {
+        const proArr = [];
+        for (let i = 0; i < result.length; i++) {
+            const item = result[i];
+            const {extra, content, senderUserId, objectName} = item.content;
+            if (objectName === 'RC:TxtMsg' && extra && JSON.parse(extra)['type'] === 'redBags') {
+                proArr.push(this.getRedBagsStatus(token, JSON.parse(extra)['hb_orderid'], i))
+            }
+        }
+        return Promise.all(proArr)
+    }
+
+    /**
+     * 获取红包转态
+     * @param token
+     * @param rm_orderid
+     * @returns {*}
+     */
+    getRedBagsStatus(token, rm_orderid, index = -1) {
+        const url = '/index/redmoney/select_rm';
+        return new Promise((resolve, reject) => {
+            apiRequest(url, {
+                method: 'post',
+                mode: "cors",
+                body: JSON.stringify({token, rm_orderid})
+            }).then((res) => {
+                resolve({...res, index})
+            }, (e) => {
+                reject(e)
+            })
+        })
+
+    }
 
     _createListFooter = () => {
         return (
@@ -486,31 +532,54 @@ class ChatBox extends React.Component {
     /**
      * 打开红包
      */
-    openRedBags(item, index, isSelf,extra) {
-        this.setState((pre) => {
-            let redBagsItem = {};
-            if (isSelf) {
-                redBagsItem = {
-                    ...pre.selfInfo,
-                };
-                return null
-            } else {
-                if (/group/.test(this.targetId)) {
-                    redBagsItem = {
-                        ...pre.groupListInfo[senderUserId],
-                    }
-                } else {
-                    redBagsItem = {
-                        ...pre.userInfo,
+    async openRedBags(item, index, isSelf, extra) {
+        const {redBagsCode, senderUserId} = item;
+        const isGroup = /group/.test(this.targetId);
+        const token = await AsyncStorage.getItem('token');
+        if (isSelf && !isGroup) {
+            const selfStatus = await this.getRedBagsStatus(token, JSON.parse(extra)['hb_orderid']);
+            console.log(selfStatus);
+            if (selfStatus) {
+                this.props.navigation.navigate('RedBagsDetail', {
+                    ...this.state.selfInfo,
+                    ...selfStatus,
+                    isSelf,
+                    isGroup,
+                });
+            }
+            return
+        }
+        if (redBagsCode == 200) {
+            this.setState((pre) => {
+                console.log('redBagsCode', redBagsCode);
+                const redBagsItem = isGroup ? {...pre.groupListInfo[senderUserId]} : {...pre.userInfo};
+
+                return {
+                    redBagsItem: {
+                        ...redBagsItem,
+                        ...JSON.parse(extra),
+                        isSelf,
+                        messageUId: item['messageUId'],
+                        index,
+                        redBagsCode
                     }
                 }
+            },() => {
+                this.getRedBags.show()
+            });
+        } else {
+            const redBagsItem = isGroup ? {...this.state.groupListInfo[senderUserId]} : {...this.state.userInfo};
+            const selfStatus = await this.getRedBagsStatus(token, JSON.parse(extra)['hb_orderid']);
+            console.log(selfStatus)
+            if (selfStatus) {
+                this.props.navigation.navigate('RedBagsDetail', {
+                    ...redBagsItem,
+                    ...selfStatus,
+                    isSelf,
+                    isGroup,
+                });
             }
-            return {
-                redBagsItem: {...redBagsItem, ...JSON.parse(extra), messageUId: item['messageUId'], index}
-            }
-        }, () => {
-            this.getRedBags.show()
-        });
+        }
     }
 
     _renderTxtMsg(item, index, isSelf) {
@@ -521,14 +590,15 @@ class ChatBox extends React.Component {
             </Text>;
         }
         try {
-            const {hb_orderid, type, isGet} = JSON.parse(extra);
+            const {hb_orderid, type,} = JSON.parse(extra);
             if (type === 'redBags') {
+                const iswlq = item['redBagsCode'] == 115 ||item['redBagsCode'] == 200
                 return <TouchableOpacity activeOpacity={1}
-                                         onPress={() => this.openRedBags(item, index, isSelf,extra)}
+                                         onPress={() => this.openRedBags(item, index, isSelf, extra)}
                                          style={styles.redBagsWrap}>
-                    <View style={[styles.redBagsTop, {backgroundColor: isGet ? '#BC3D3D' : '#FF5353'}]}>
+                    <View style={[styles.redBagsTop, {backgroundColor: !iswlq ? '#BC3D3D' : '#FF5353'}]}>
                         <Image style={{width: 32, height: 37, marginRight: 12}}
-                               source={isGet ? require('../assets/img/img-open-red-envelope.png') : require('../assets/img/img-red-envelope.png')}/>
+                               source={!iswlq ? require('../assets/img/img-open-red-envelope.png') : require('../assets/img/img-red-envelope.png')}/>
                         <Text style={{color: '#fff'}}>恭喜发财，红包拿来</Text>
                     </View>
                     <Text style={{paddingLeft: 15}}>彩信红包</Text>
@@ -854,23 +924,16 @@ class ChatBox extends React.Component {
                                             token,
                                             rm_orderid: hb_orderid
                                         })
-                                    }).then((res) => {
+                                    }).then(async (res) => {
                                         console.log(res);
                                         if (res['code'] == 200) {
+                                            const status = await this.getRedBagsStatus(token, hb_orderid);
                                             this.setState((pre) => {
                                                 const msgData = pre.msgData;
-                                                try {
-                                                    const extra = JSON.parse(msgData[index]['content']['extra']);
-                                                    extra['isGet'] = true;
-                                                    msgData[index]['content']['extra'] = JSON.stringify(extra);
-                                                    console.log(msgData)
-                                                    return {msgData}
-                                                } catch (e) {
-
-                                                }
-
+                                                msgData[index]['redBagsCode'] = status.code;
+                                                return {msgData}
                                             })
-                                        }else {
+                                        } else {
                                             alert(res['msg'])
                                         }
                                     })

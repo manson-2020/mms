@@ -51,27 +51,45 @@ export default class SendRedBagsPage extends Component {
 
         const token = await AsyncStorage.getItem('token');
         const url = '/index/redmoney/redmoney_create';
-        const {rm_money} = this.state;
-        const data = {
+        const {rm_money, max_rev} = this.state;
+        // token	用户身份认证	string	Y	-
+        // rm_money	红包金额	string	Y	-
+        // rm_type	红包类型 1单聊 3群随机 4众筹随机	string	Y	-
+        // rev_userid	红包接收人的时候必传	string	N	rm_type为1的时候必传
+        // max_rev	最多领取人数	string	N	rm_type为3或4的时候必传
+        // group_id	群组id	string	N	rm_type为3或4的时候必传
+        // pay_pwd	支付密码	string	Y	-
+
+        let baseData = {
             token,
             rm_money,
-            rm_type: 1,
+            rm_type: this.isPerson ? 1 : 3,
             pay_pwd,
-            rev_userid: this.targetId
-
         };
+        const data = this.isPerson ?
+            {
+                ...baseData,
+                rev_userid: this.targetId
+            }
+            :
+            {
+                ...baseData,
+                max_rev,
+                group_id: this.targetId
+            };
+
         apiRequest(url, {
             method: 'post',
             mode: "cors",
             body: JSON.stringify(data)
         }).then((res) => {
             console.log(res);
-            if(res['code'] == 200){
+            if (res['code'] == 200) {
                 alert(res['msg']);
                 this.props.navigation.goBack();
-                const hb_orderid=res['res']['hb_orderid'];
-                this.callBack && this.callBack(hb_orderid,true)
-            }else {
+                const hb_orderid = res['res']['hb_orderid'];
+                this.callBack && this.callBack(hb_orderid, true)
+            } else {
                 alert('支付密码错误请重试')
             }
         }, (error) => {
@@ -79,8 +97,22 @@ export default class SendRedBagsPage extends Component {
         })
     }
 
+    canSend() {
+        const {rm_money, max_rev} = this.state;
+        if (this.isPerson) {
+            if (rm_money && rm_money > 0) {
+                return true
+            }
+        } else {
+            if (rm_money && rm_money > 0 && max_rev && max_rev >= 1) {
+                return true
+            }
+        }
+    }
+
     render() {
         const {rm_money, max_rev, showPayPassword} = this.state;
+
         return <View style={styles.container}>
             <StatusBar translucent={true} backgroundColor="transparent" barStyle='dark-content'/>
             <TopBar
@@ -88,50 +120,60 @@ export default class SendRedBagsPage extends Component {
                 leftPress={() => this.props.navigation.goBack()}
                 title={'发红包'}
             />
-            <ScrollView style={{backgroundColor: '#f5f5f5'}}>
-                <InputItem title={'金额'}
-                           keyboardType={'numeric'}
-                           placeholder={'请输入金额'}
-                           defaultValue={rm_money}
-                           onChangeText={(rm_money) => this.setState(() => {
-                               return {
-                                   rm_money: Utils.clearNoNum(rm_money)
-                               }
-                           })}
-                           value={rm_money}/>
-                {!this.isPerson ? <InputItem title={'人数'}
-                                             placeholder={'请输入人数'}
-                                             showRightText={false}
-                                             inputStyle={{textAlign: 'left'}}
-                                             value={0.00}/> : null
-                }
-
-                <InputItem title={'祝福语'}
-                           placeholder={'恭喜发财吉祥如意'}
-                           showRightText={false}
-                           inputStyle={{textAlign: 'left'}}
-                           value={0.00}/>
-
-                <View style={styles.nubWrap}>
-                    <Text style={[styles.moneyNub, {fontSize: 28, marginTop: -1}]}>¥</Text>
-                    <Text style={styles.moneyNub}>{Utils.returnFloat(rm_money)}</Text>
-                </View>
-                <TouchableOpacity style={styles.btnWrap} onPress={() => {
-                    if (rm_money > 0) {
-                        this.showPayPassword()
+            <View style={{flex:1}}>
+                <ScrollView style={{backgroundColor: '#f5f5f5'}}>
+                    <InputItem title={'金额'}
+                               keyboardType={'numeric'}
+                               placeholder={'请输入金额'}
+                               defaultValue={rm_money}
+                               onChangeText={(rm_money) => this.setState(() => {
+                                   return {
+                                       rm_money: Utils.clearNoNum(rm_money)
+                                   }
+                               })}
+                               value={rm_money}/>
+                    {!this.isPerson ? <InputItem title={'人数'}
+                                                 placeholder={'请输入人数'}
+                                                 showRightText={false}
+                                                 onChangeText={(max_rev) => this.setState(() => {
+                                                     max_rev = max_rev.replace(/[^\d]+/, '');
+                                                     return {
+                                                         max_rev
+                                                     }
+                                                 })}
+                                                 inputStyle={{textAlign: 'left'}}
+                                                 value={max_rev}/> : null
                     }
-                }}>
-                    <Text
-                        style={[styles.subBtn, {backgroundColor: rm_money && rm_money > 0 ? '#FF5353FF' : '#FF535366'}]}>赛钱进红包</Text>
-                </TouchableOpacity>
-                {showPayPassword ? <InputPayPasswordModal
-                    ref={(ref) => this.inputPayPassword = ref}
-                    rm_money={rm_money}
-                    close={() => this.closePayPassword()}
-                    show={() => this.showPayPassword()}
-                    callBack={ (pay_pwd) => this.sendRedBags(pay_pwd)}
-                /> : null}
-            </ScrollView>
+
+                    <InputItem title={'祝福语'}
+                               placeholder={'恭喜发财吉祥如意'}
+                               showRightText={false}
+                               inputStyle={{textAlign: 'left'}}
+                               value={0.00}/>
+
+                    <View style={styles.nubWrap}>
+                        <Text style={[styles.moneyNub, {fontSize: 28, marginTop: -1}]}>¥</Text>
+                        <Text style={styles.moneyNub}>{Utils.returnFloat(rm_money)}</Text>
+                    </View>
+                    <TouchableOpacity style={styles.btnWrap} onPress={() => {
+                        if (this.canSend()) {
+                            this.showPayPassword()
+                        }
+                    }}>
+                        <Text
+                            style={[styles.subBtn, {
+                                backgroundColor: this.canSend()? '#FF5353FF' : '#FF535366'
+                            }]}>赛钱进红包</Text>
+                    </TouchableOpacity>
+                    {showPayPassword ? <InputPayPasswordModal
+                        ref={(ref) => this.inputPayPassword = ref}
+                        rm_money={rm_money}
+                        close={() => this.closePayPassword()}
+                        show={() => this.showPayPassword()}
+                        callBack={(pay_pwd) => this.sendRedBags(pay_pwd)}
+                    /> : null}
+                </ScrollView>
+            </View>
         </View>
     }
 

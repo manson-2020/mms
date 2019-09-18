@@ -40,9 +40,9 @@ export default class name extends Component {
     }
 
     render() {
-        const {redBagsItem,callBack} = this.props;
+        const {redBagsItem, callBack} = this.props;
         if (!redBagsItem) return null;
-        const {header_img, nickname, username, hb_orderid,isGet} = redBagsItem;
+        const {header_img, nickname, username, hb_orderid, redBagsCode} = redBagsItem;
 
         return <View>
             <StatusBar hidden={this.state.isVisible}/>
@@ -71,14 +71,15 @@ export default class name extends Component {
                             <Text style={styles.name}>{nickname || username}</Text>
                             <Text style={styles.descText}>恭喜发财,吉祥如意</Text>
                         </View>
-                        {/*<Text style={styles.backText}>红包超时未领取,已退回</Text>*/}
-                        <TouchableWithoutFeedback onPress={() => {
+                        {redBagsCode == 113 ? <Text style={styles.backText}>红包超时未领取,已退回</Text> : null}
+                        {redBagsCode == 117 ? <Text style={styles.backText}>红包抢完，查看明细</Text> : null}
+                        {redBagsCode == 200 ? <TouchableWithoutFeedback onPress={() => {
                             this.hide();
                             callBack && callBack()
                         }}>
                             <Image style={styles.openIcon}
                                    source={require('../assets/img/icon-open.png')}/>
-                        </TouchableWithoutFeedback>
+                        </TouchableWithoutFeedback> : null}
                     </ImageBackground>
                 </View>
             </Modal>
