@@ -27,7 +27,7 @@ import {
     ObjectName,
     getHistoryMessages,
     addReceiveMessageListener,
-    cancelSendMediaMessage
+    cancelSendMediaMessage,
 } from "rongcloud-react-native-imlib";
 import RNThumbnail from "react-native-thumbnail";
 import VideoPlay from '../common/VideoPlay'
@@ -92,7 +92,7 @@ class ChatBox extends React.Component {
             {
                 width: 27,
                 height: 19,
-                text: '个人名片',
+                text: '红包',
                 source: require('../assets/images/icon-card.png'),
                 onClick: (hb_orderid) => this.props.navigation.navigate('SendRedBags', {
                     targetId: this.targetId,
@@ -269,7 +269,7 @@ class ChatBox extends React.Component {
         //监听接收消息
         this.listener = addReceiveMessageListener(result => {
             if (result.message.targetId == this.targetId) {
-                console.log('监听接收消息', msgData);
+                console.log('监听接收消息', result);
                 this.setState({
                     msgData: [result.message, ...this.state.msgData]
                 });
@@ -494,6 +494,7 @@ class ChatBox extends React.Component {
                             })
                         }
                     } catch (e) {
+                        console.log(e)
                         alert('视频截图失败')
                     }
                 } else {
@@ -538,12 +539,12 @@ class ChatBox extends React.Component {
         const token = await AsyncStorage.getItem('token');
         if (isSelf && !isGroup) {
             const selfStatus = await this.getRedBagsStatus(token, JSON.parse(extra)['hb_orderid']);
-            console.log(selfStatus);
             if (selfStatus) {
                 this.props.navigation.navigate('RedBagsDetail', {
                     ...this.state.selfInfo,
                     ...selfStatus,
                     isSelf,
+                    self_id: this.state.selfInfo['ry_userid'],
                     isGroup,
                 });
             }
@@ -564,18 +565,19 @@ class ChatBox extends React.Component {
                         redBagsCode
                     }
                 }
-            },() => {
+            }, () => {
                 this.getRedBags.show()
             });
         } else {
             const redBagsItem = isGroup ? {...this.state.groupListInfo[senderUserId]} : {...this.state.userInfo};
             const selfStatus = await this.getRedBagsStatus(token, JSON.parse(extra)['hb_orderid']);
-            console.log(selfStatus)
+            console.log('senderUserId', senderUserId)
             if (selfStatus) {
                 this.props.navigation.navigate('RedBagsDetail', {
                     ...redBagsItem,
                     ...selfStatus,
                     isSelf,
+                    self_id: this.state.selfInfo['ry_userid'],
                     isGroup,
                 });
             }
@@ -592,7 +594,7 @@ class ChatBox extends React.Component {
         try {
             const {hb_orderid, type,} = JSON.parse(extra);
             if (type === 'redBags') {
-                const iswlq = item['redBagsCode'] == 115 ||item['redBagsCode'] == 200
+                const iswlq = item['redBagsCode'] == 115 || item['redBagsCode'] == 200
                 return <TouchableOpacity activeOpacity={1}
                                          onPress={() => this.openRedBags(item, index, isSelf, extra)}
                                          style={styles.redBagsWrap}>
@@ -873,7 +875,6 @@ class ChatBox extends React.Component {
                                 maxLength={99}
                                 autoCorrect={false}
                                 iosreturnKeyType="send"
-                                onSubmitEditing={() => this.sendMessage()}
                                 style={styles.barInput}
                                 multiline={true}
                                 value={this.state.msgText}
@@ -882,9 +883,12 @@ class ChatBox extends React.Component {
                         <TouchableWithoutFeedback>
                             <Image style={styles.barIcon} source={source.icon_emoji}/>
                         </TouchableWithoutFeedback>
-                        <TouchableWithoutFeedback onPress={this.showMore.bind(this)}>
-                            <Image style={styles.barIcon} source={source.icon_more}/>
-                        </TouchableWithoutFeedback>
+                        {!this.state.msgText ? <TouchableWithoutFeedback onPress={this.showMore.bind(this)}>
+                                <Image style={styles.barIcon} source={source.icon_more}/>
+                            </TouchableWithoutFeedback> :
+                            <TouchableOpacity onPress={()=>this.sendMessage()} style={styles.subBtn}>
+                                <Text style={{color:'#fff'}}>发送</Text>
+                            </TouchableOpacity>}
                     </View>
                     <Animated.View style={[styles.moreContainer, {height: this.state.animatedValue}]}>
                         {this.getBottomOption()}
@@ -913,10 +917,11 @@ class ChatBox extends React.Component {
                         url={currentVoice}
                     /> : null}
                     <GetRedBags ref={(ref) => this.getRedBags = ref}
-                                callBack={async (rm_orderid) => {
-                                    const {hb_orderid, messageUId, index} = this.state.redBagsItem;
+                                callBack={async () => {
+                                    const {hb_orderid, messageUId, index,} = this.state.redBagsItem;
                                     const token = await AsyncStorage.getItem('token');
                                     const url = '/index/redmoney/get_rm';
+                                    const isGroup = /group/.test(this.targetId);
                                     apiRequest(url, {
                                         method: 'post',
                                         mode: "cors",
@@ -928,14 +933,27 @@ class ChatBox extends React.Component {
                                         console.log(res);
                                         if (res['code'] == 200) {
                                             const status = await this.getRedBagsStatus(token, hb_orderid);
+                                            console.log(status)
+                                            this.getRedBags.hide();
+                                            if (status) {
+                                                this.props.navigation.navigate('RedBagsDetail', {
+                                                    ...this.state.redBagsItem,
+                                                    ...status,
+                                                    self_id: this.state.selfInfo['ry_userid'],
+                                                    isGroup,
+                                                });
+                                            }
                                             this.setState((pre) => {
                                                 const msgData = pre.msgData;
                                                 msgData[index]['redBagsCode'] = status.code;
                                                 return {msgData}
                                             })
                                         } else {
+                                            this.getRedBags.hide();
                                             alert(res['msg'])
                                         }
+                                    }, () => {
+                                        this.getRedBags.hide();
                                     })
                                 }}
                                 redBagsItem={this.state.redBagsItem}/>
@@ -1058,6 +1076,15 @@ const styles = StyleSheet.create({
         paddingRight: 15,
         flexDirection: 'row',
         alignItems: 'center',
+    },
+    subBtn: {
+        width: 50,
+        height: 30,
+        marginRight:5,
+        backgroundColor: '#18dd61',
+        borderRadius:5,
+        justifyContent:'center',
+        alignItems:'center'
     }
 });
 

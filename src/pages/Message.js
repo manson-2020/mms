@@ -14,7 +14,7 @@ import {
     Dimensions,
     TouchableOpacity
 } from 'react-native';
-import {getConversation, ConversationType} from "rongcloud-react-native-imlib";
+import {getConversation, ConversationType,getConversationList} from "rongcloud-react-native-imlib";
 import AsyncStorage from '@react-native-community/async-storage';
 import moment from 'moment';
 import TopBar from './components/TopBar';
@@ -51,40 +51,45 @@ class Message extends React.Component {
         this.deEmitter.remove();
     }
 
-    dataRequest() {
-        AsyncStorage.getItem('token').then(token => {
-            apiRequest("/index/friend/friend_list", {
-                method: 'post',
-                mode: "cors",
-                body: formDataObject({
-                    token: token
-                })
-            }).then(req => {
-                req.res.map(item => {
-                    console.log(ConversationType.PRIVATE, item.userid);
-                    // getConversation(ConversationType.PRIVATE, item.userid).then(res => {
-                    //     if (res) {
-                    //         this.setState({
-                    //             data: [
-                    //                 ...this.state.data,
-                    //                 {
-                    //                     targetId: item.userid,
-                    //                     avatar: item.header_img,
-                    //                     name: item.nickname || item.username,
-                    //                     msg: res.latestMessage.content,
-                    //                     time: moment(new Date(res.receivedTime)).format('HH:mm')
-                    //                 },
-                    //             ],
-                    //             refreshing: false
-                    //         })
+    async dataRequest() {
+        const token = await AsyncStorage.getItem('token');
+        const list=await getConversationList();
+        console.log(list)
+        // apiRequest("/index/friend/friend_list", {
+        //     method: 'post',
+        //     mode: "cors",
+        //     body: formDataObject({
+        //         token: token
+        //     })
+        // }).then(req => {
+        //     console.log('req',req)
+        //     req.res.map(item => {
+        //         console.log(ConversationType.PRIVATE, item.userid);
+        //         // getConversation(ConversationType.PRIVATE, item.userid).then(res => {
+        //         //     if (res) {
+        //         //         this.setState({
+        //         //             data: [
+        //         //                 ...this.state.data,
+        //         //                 {
+        //         //                     targetId: item.userid,
+        //         //                     avatar: item.header_img,
+        //         //                     name: item.nickname || item.username,
+        //         //                     msg: res.latestMessage.content,
+        //         //                     time: moment(new Date(res.receivedTime)).format('HH:mm')
+        //         //                 },
+        //         //             ],
+        //         //             refreshing: false
+        //         //         })
+        //
+        //         //     } else {
+        //         //         this.setState({ refreshing: false });
+        //         //     }
+        //         // });
+        //     })
+        // },(error)=>{
+        //     console.log(error)
+        // })
 
-                    //     } else {
-                    //         this.setState({ refreshing: false });
-                    //     }
-                    // });
-                })
-            }).catch(error => console.warn(error))
-        })
     }
 
     refresh = () => {
@@ -97,7 +102,7 @@ class Message extends React.Component {
         Animated.timing(this.state.fadeAnim, {toValue: this.state.showOption ? 118 : 0, duration: 300,}).start();
     }
 
-    MessageList(item, index) {
+    renderItem(item, index) {
         return (
             <TouchableOpacity onPress={() => this.props.navigation.navigate('ChatBox', {userid: item.targetId})}>
                 <View style={styles.container}>
@@ -126,12 +131,12 @@ class Message extends React.Component {
      */
     openQrcode() {
         const {navigation} = this.props;
-        navigation.navigate('QrScand',{
+        navigation.navigate('QrScand', {
             /**
              * 接收扫描结果
              * @param res
              */
-            callBack:(res)=>{
+            callBack: (res) => {
                 alert(JSON.stringify(res))
             }
         })
@@ -202,7 +207,7 @@ class Message extends React.Component {
                     }}
                     data={this.state.data}
                     keyExtractor={(item, index) => index.toString()}
-                    renderItem={({item, index}) => this.MessageList(item, index)}
+                    renderItem={({item, index}) => this.renderItem(item, index)}
                     onRefresh={this.refresh.bind(this)}
                     ListEmptyComponent={() => (
                         <View style={{

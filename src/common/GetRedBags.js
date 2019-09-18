@@ -74,7 +74,6 @@ export default class name extends Component {
                         {redBagsCode == 113 ? <Text style={styles.backText}>红包超时未领取,已退回</Text> : null}
                         {redBagsCode == 117 ? <Text style={styles.backText}>红包抢完，查看明细</Text> : null}
                         {redBagsCode == 200 ? <TouchableWithoutFeedback onPress={() => {
-                            this.hide();
                             callBack && callBack()
                         }}>
                             <Image style={styles.openIcon}
