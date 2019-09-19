@@ -23,6 +23,7 @@ import Test from './pages/Test';
 import QrScand from './common/qrScand';
 import SendRedBagsPage from './pages/RedBags/SendRedBagsPage';
 import RedBagsDetailPage from './pages/RedBags/RedBagsDetailPage';
+import {CONNECT_SUCCESS_RONGCLOUD} from '../static'
 
 global.formDataObject = obj => {
     let formData = new FormData();
@@ -135,7 +136,8 @@ global.dataGroup = initData => {
         }
     });
     return group;
-}
+};
+global[CONNECT_SUCCESS_RONGCLOUD]=false;
 
 class AuthLoadingScreen extends React.Component {
     constructor() {
@@ -153,6 +155,8 @@ class AuthLoadingScreen extends React.Component {
     }
 
     onSuccess(userId) {
+        global[CONNECT_SUCCESS_RONGCLOUD]=true;
+        DeviceEventEmitter.emit(CONNECT_SUCCESS_RONGCLOUD, {suc:true,userId});
         console.log("连接成功：" + userId);
     }
 

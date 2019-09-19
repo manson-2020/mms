@@ -39,17 +39,17 @@ export default class RedBagsDetailPage extends Component {
         // have_sum	已领取人数	string	Y	-
         // have_list	领取人列表	string	Y	-
 
-        const {code, res, isSelf,nickname, username} = this.params;
+        const {code, res, isSelf, nickname, username} = this.params;
         const {sum_money} = res;
         if (isSelf) {
-            if(code == 112 || code == 114){
+            if (code == 112 || code == 114) {
                 return `红包金额${sum_money}元,已被对方领取`
-            }else if(code == 200 || code == 115 || code == 201){
+            } else if (code == 200 || code == 115 || code == 201) {
                 return `红包金额${sum_money}元,未被对方领取`
             }
 
-        }else {
-            return `你领取了${nickname||username}的红包${sum_money}元`
+        } else {
+            return `你领取了${nickname || username}的红包${sum_money}元`
         }
 
 
@@ -60,12 +60,12 @@ export default class RedBagsDetailPage extends Component {
     }
 
     getSelfGeyMoney() {
-        const {code, isSelf, isGroup, res, ry_userid,self_id} = this.params;
+        const {code, isSelf, isGroup, res, ry_userid, self_id} = this.params;
         const {sum_money} = res;
         const selfItem = res.have_list.filter((item) => item.userid === self_id);
         console.log(selfItem)
         if (isGroup) {
-            return selfItem.length>0 && Utils.returnFloat(selfItem[0]['rev_money'])
+            return selfItem.length > 0 && Utils.returnFloat(selfItem[0]['rev_money'])
         } else {
             console.log(sum_money)
             return Utils.returnFloat(sum_money)

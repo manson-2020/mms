@@ -1,13 +1,12 @@
 package com.demo;
-
 import android.app.Application;
-
+import me.hauvo.thumbnail.RNThumbnailPackage;
 import com.facebook.react.ReactApplication;
 import com.rnfs.RNFSPackage;
 import com.horcrux.svg.SvgPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
 import com.brentvatne.react.ReactVideoPackage;
-import me.hauvo.thumbnail.RNThumbnailPackage;
+
 import org.reactnative.camera.RNCameraPackage;
 import com.reactnative.ivpusic.imagepicker.PickerPackage;
 import com.cmcewen.blurview.BlurViewPackage;

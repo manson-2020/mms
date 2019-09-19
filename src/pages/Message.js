@@ -12,12 +12,15 @@ import {
     TouchableWithoutFeedback,
     DeviceEventEmitter,
     Dimensions,
-    TouchableOpacity
+    TouchableOpacity,
+    RefreshControl,
 } from 'react-native';
-import {getConversation, ConversationType,getConversationList} from "rongcloud-react-native-imlib";
+import {getConversation, ConversationType, getConversationList} from "rongcloud-react-native-imlib";
 import AsyncStorage from '@react-native-community/async-storage';
 import moment from 'moment';
 import TopBar from './components/TopBar';
+import {CONNECT_SUCCESS_RONGCLOUD} from '../../static'
+import Utils from "../../util/Utils";
 
 class Message extends React.Component {
 
@@ -40,61 +43,74 @@ class Message extends React.Component {
 
 
     componentWillMount() {
-        this.dataRequest();
-        this.deEmitter = DeviceEventEmitter.addListener('new Message', res => {
-            this.state.data = [];
-            this.dataRequest()
+        /**
+         * 通过全局变量 CONNECT_SUCCESS_RONGCLOUD 判断是否连接容云成功，没有就监听连接成功的事件，
+         * 然后再调用获会话列表的接口
+         * 如果已经连接成功 直接调用获取会话列表的接口
+         */
+        if (global[CONNECT_SUCCESS_RONGCLOUD]) {
+            this.suclistener && this.suclistener.remove();
+            this.dataRequest();
+            return;
+        }
+        this.suclistener = DeviceEventEmitter.addListener(CONNECT_SUCCESS_RONGCLOUD, (message) => {
+            if (message['suc']) {
+                this.dataRequest()
+            }
         });
     }
 
     componentWillUnmount() {
-        this.deEmitter.remove();
+        this.suclistener && this.suclistener.remove();
     }
 
+    /**
+     * 获取单个用户的基本信息
+     * @param token
+     * @param userid
+     * @param index
+     * @returns {Promise<any> | Promise}
+     */
+    getuserinfo(token, userid, index) {
+        return new Promise((resolve, reject) => {
+            apiRequest('/index/userinfo/getuserinfo', {
+                method: 'post',
+                mode: "cors",
+                body: formDataObject({
+                    token,
+                    userid,
+                })
+            }).then((res) => {
+                if (res.code == 200) {
+                    resolve({...res.res, index})
+                } else {
+                    reject(res)
+                }
+            }, (e) => {
+                reject(e)
+            })
+        });
+
+    }
+
+    /**
+     * 获取会话列表
+     */
     async dataRequest() {
-        const token = await AsyncStorage.getItem('token');
-        const list=await getConversationList();
-        console.log(list)
-        // apiRequest("/index/friend/friend_list", {
-        //     method: 'post',
-        //     mode: "cors",
-        //     body: formDataObject({
-        //         token: token
-        //     })
-        // }).then(req => {
-        //     console.log('req',req)
-        //     req.res.map(item => {
-        //         console.log(ConversationType.PRIVATE, item.userid);
-        //         // getConversation(ConversationType.PRIVATE, item.userid).then(res => {
-        //         //     if (res) {
-        //         //         this.setState({
-        //         //             data: [
-        //         //                 ...this.state.data,
-        //         //                 {
-        //         //                     targetId: item.userid,
-        //         //                     avatar: item.header_img,
-        //         //                     name: item.nickname || item.username,
-        //         //                     msg: res.latestMessage.content,
-        //         //                     time: moment(new Date(res.receivedTime)).format('HH:mm')
-        //         //                 },
-        //         //             ],
-        //         //             refreshing: false
-        //         //         })
-        //
-        //         //     } else {
-        //         //         this.setState({ refreshing: false });
-        //         //     }
-        //         // });
-        //     })
-        // },(error)=>{
-        //     console.log(error)
-        // })
-
-    }
-
-    refresh = () => {
-        this.state.data = [];
-        this.setState({refreshing: true}, () => this.dataRequest())
+        try {
+            this.setState({refreshing: true});
+            const list = await getConversationList().catch((e) => alert('获取容云数据失败'));
+            if (list) {
+                this.setState({
+                    data: list,
+                    refreshing: false
+                })
+            }
+            console.log(list);
+        } catch (e) {
+            this.setState({refreshing: false});
+            console.log(e)
+        }
     }
 
     showOption() {
@@ -102,28 +118,82 @@ class Message extends React.Component {
         Animated.timing(this.state.fadeAnim, {toValue: this.state.showOption ? 118 : 0, duration: 300,}).start();
     }
 
+    /**
+     * 根据消息类型 返回不同的文本
+     **/
+    getMesText(latestMessage) {
+        const {objectName, extra, content} = latestMessage;
+        if (objectName === 'RC:TxtMsg') {
+            if (extra) {
+                try {
+                    const {type} = JSON.parse(extra);
+                    if (type === 'redBags') {
+                        return '[红包]'
+                    } else {
+                        return content
+                    }
+
+                } catch (e) {
+                    return content
+                }
+            }
+            return content
+        } else if (objectName === 'RC:FileMsg') {
+            if (extra) {
+                try {
+                    const {type} = JSON.parse(extra);
+                    switch (type) {
+                        case 'video':
+                            return '[视频]';
+                        case 'voice':
+                            return ['语音']
+                        default:
+                            return '[文件]'
+                    }
+                } catch (e) {
+                    return '[文件]'
+                }
+            }
+        }
+    }
+    goPage(info){
+        this.props.navigation.navigate('ChatBox', info)
+    }
     renderItem(item, index) {
-        return (
-            <TouchableOpacity onPress={() => this.props.navigation.navigate('ChatBox', {userid: item.targetId})}>
-                <View style={styles.container}>
-                    <View style={styles.leftView}>
-                        {/* <View style={styles.marker}></View> */}
-                        <Image
-                            style={styles.avatar}
-                            defaultSource={require('../assets/images/default_avatar.png')}
-                            source={{uri: item.avatar}}
-                        />
+        const {latestMessage, targetId, sentTime} = item;
+        const {extra} = latestMessage;
+        const isGroup = /group/.test(targetId);
+        try {
+            const extraData = JSON.parse(extra);
+            const {info, selfInfo} = extraData;
+            return (
+                <TouchableOpacity onPress={() =>this.goPage(info)}>
+                    <View style={styles.container}>
+                        <View style={styles.leftView}>
+                            {/* <View style={styles.marker}></View> */}
+                            <Image
+                                style={styles.avatar}
+                                defaultSource={require('../assets/images/default_avatar.png')}
+                                source={{uri: isGroup ? info['group_img'] : info['header_img']}}
+                            />
+                        </View>
+                        <View style={styles.main}>
+                            <Text numberOfLines={1} style={styles.name}>
+                                {isGroup ? info['group_name'] : info['nickname'] || info['username']}
+                            </Text>
+                            <Text numberOfLines={1} style={styles.msg}>
+                                {isGroup ? (selfInfo['nickname'] || selfInfo['username']) + ':' : ''}{this.getMesText(latestMessage)}
+                            </Text>
+                        </View>
+                        <View style={styles.rightView}>
+                            <Text numberOfLines={1} style={styles.time}>{Utils.format(sentTime)}</Text>
+                        </View>
                     </View>
-                    <View style={styles.main}>
-                        <Text numberOfLines={1} style={styles.name}>{item.name}</Text>
-                        <Text numberOfLines={1} style={styles.msg}>{item.msg}</Text>
-                    </View>
-                    <View style={styles.rightView}>
-                        <Text numberOfLines={1} style={styles.time}>{item.time}</Text>
-                    </View>
-                </View>
-            </TouchableOpacity>
-        );
+                </TouchableOpacity>
+            );
+        } catch (e) {
+            return null
+        }
     }
 
     /**
@@ -208,7 +278,13 @@ class Message extends React.Component {
                     data={this.state.data}
                     keyExtractor={(item, index) => index.toString()}
                     renderItem={({item, index}) => this.renderItem(item, index)}
-                    onRefresh={this.refresh.bind(this)}
+                    refreshControl={
+                        <RefreshControl
+                            title={'Loading'}
+                            refreshing={this.state.refreshing}
+                            onRefresh={() => this.dataRequest()}
+                        />
+                    }
                     ListEmptyComponent={() => (
                         <View style={{
                             height: this.state.flatlistHeight,
@@ -221,7 +297,6 @@ class Message extends React.Component {
                             <Text style={{color: "#999", marginTop: 16}}>暂无新消息</Text>
                         </View>
                     )}
-                    refreshing={this.state.refreshing}
                 />
             </View>
         );
@@ -238,7 +313,7 @@ const styles = StyleSheet.create({
     avatar: {
         width: 50,
         height: 50,
-        borderRadius: 19,
+        borderRadius: 25,
     },
     leftView: {
         marginTop: 15,

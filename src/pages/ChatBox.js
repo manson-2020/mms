@@ -13,7 +13,9 @@ import {
     FlatList,
     Animated,
     ActivityIndicator,
+    PermissionsAndroid,
     Keyboard,
+    Dimensions,
 } from 'react-native';
 import TopBar from './components/TopBar';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -34,7 +36,7 @@ import VideoPlay from '../common/VideoPlay'
 import ViewerImageModal from '../common/ViewerImageModal'
 import GetRedBags from '../common/GetRedBags'
 
-
+const {width}=Dimensions.get('window');
 // 18981796331
 
 
@@ -43,6 +45,9 @@ class ChatBox extends React.Component {
         super(props);
         this.imageUrls = [];
         this.info = props.navigation.state.params;
+        this.targetId = this.info.userid || this.info.group_id;
+        this.isGroup = /group/.test(this.targetId);
+        this.conversationType = this.isGroup ? ConversationType.GROUP  : ConversationType.PRIVATE
         this.state = {
             animatedValue: new Animated.Value(0),
             isShow: false,
@@ -108,7 +113,8 @@ class ChatBox extends React.Component {
                                 extra: JSON.stringify({
                                     type: 'redBags',
                                     hb_orderid,
-                                    isGet: false,
+                                    info:this.info,
+                                    selfInfo:this.isGroup ? this.state.selfInfo : null
                                 }),
                             };
                             MediaUtils.sendMessage({
@@ -164,8 +170,7 @@ class ChatBox extends React.Component {
                 }
             }
         ];
-        this.targetId = this.info.userid || this.info.group_id;
-        this.conversationType = (this.targetId.indexOf('group') == -1) ? ConversationType.PRIVATE : ConversationType.GROUP
+
     }
 
     componentWillMount() {
@@ -297,7 +302,8 @@ class ChatBox extends React.Component {
      * 获取红包转态
      * @param token
      * @param rm_orderid
-     * @returns {*}
+     * @param index
+     * @returns {Promise<any> | Promise}
      */
     getRedBagsStatus(token, rm_orderid, index = -1) {
         const url = '/index/redmoney/select_rm';
@@ -340,7 +346,7 @@ class ChatBox extends React.Component {
     ChatFrame(item, index) {
         const {groupListInfo, selfInfo, userInfo} = this.state;
         const {senderUserId} = item;
-        const targetHeader = !/group/.test(this.targetId) ? userInfo.header_img : (groupListInfo[senderUserId] ? groupListInfo[senderUserId].header_img : "");
+        const targetHeader = !this.isGroup ? userInfo.header_img : (groupListInfo[senderUserId] ? groupListInfo[senderUserId].header_img : "");
         const targetName = groupListInfo[senderUserId] && (groupListInfo[senderUserId]['nickname'] || groupListInfo[senderUserId]['username']) || '';
         return (
             <View>
@@ -350,7 +356,7 @@ class ChatBox extends React.Component {
                         marginBottom: 15,
                         marginTop: !index ? 15 : 0,
                         justifyContent: "flex-end",
-                        marginRight: 15
+                        marginRight: 15,
                     }}>
                         <View>
                             {
@@ -368,7 +374,7 @@ class ChatBox extends React.Component {
                                 </Text>
                             }
                             <View style={{
-                                backgroundColor: "#6fff5f",
+                                backgroundColor: "#196FF0",
                                 maxWidth: 220,
                                 marginRight: 10,
                                 borderRadius: 5
@@ -454,8 +460,16 @@ class ChatBox extends React.Component {
                 conversationType: (this.targetId.indexOf('group') == -1) ? ConversationType.PRIVATE : ConversationType.GROUP,
                 targetId: this.targetId,
                 senderUserId: this.state.selfInfo.ry_userid,
-                content: {objectName: ObjectName.Text, content: this.state.msgText.replace(/\n/g, "")}
-            }
+                content: {
+                    objectName: ObjectName.Text,
+                    content: this.state.msgText.replace(/\n/g, ""),
+                    extra: JSON.stringify({
+                        type: 'text',
+                        info:this.info,
+                        selfInfo:this.isGroup ? this.state.selfInfo : null
+                    })
+                }
+            };
             sendMessage(message, {
                 success: messageId => {
                     this.setState({
@@ -487,10 +501,18 @@ class ChatBox extends React.Component {
                 if (/video/.test(mime)) {
                     try {
                         const thumbnail = await RNThumbnail.get(path);
+                        const pathRes = await this.getThumbnailSeaveUrl(thumbnail.path);
+                        let thumbnailPpath = '';
+                        if (pathRes.code == 200) {
+                            thumbnailPpath = pathRes.res
+                        }
                         content = {
                             objectName: ObjectName.File, local: path, extra: JSON.stringify({
                                 type: 'video',
-                                path: thumbnail.path
+                                path: thumbnailPpath,
+                                localPath: thumbnail.path,
+                                info: this.info,
+                                selfInfo:this.isGroup ? this.state.selfInfo : null
                             })
                         }
                     } catch (e) {
@@ -498,7 +520,15 @@ class ChatBox extends React.Component {
                         alert('视频截图失败')
                     }
                 } else {
-                    content = {objectName: ObjectName.Image, local: path};
+                    content = {
+                        objectName: ObjectName.Image,
+                        local: path,
+                        extra: JSON.stringify({
+                            type: 'image',
+                            info: this.info,
+                            selfInfo:this.isGroup ? this.state.selfInfo : null
+                        })
+                    };
                 }
                 //发送
                 content && MediaUtils.sendMediaMessage({
@@ -605,6 +635,10 @@ class ChatBox extends React.Component {
                     </View>
                     <Text style={{paddingLeft: 15}}>彩信红包</Text>
                 </TouchableOpacity>
+            }else {
+                return <Text style={[styles.textMes, {color: isSelf ? '#fff' : '#333'}]}>
+                    {content}
+                </Text>;
             }
         } catch (e) {
             return null
@@ -651,7 +685,8 @@ class ChatBox extends React.Component {
                         activeVideoUrl: local || remote,
                         activeposter: extra
                     })} style={styles.videoWrap}>
-                        <Image style={{width: '100%', height: '100%',}} source={{uri: extradata['path'] || local}}/>
+                        <Image style={{width: '100%', height: '100%',}}
+                               source={{uri: extradata['localPath'] || extradata['path']}}/>
                         <View style={styles.playBtnWrap}>
                             <Image style={{width: 40, height: 40,}} source={require('../assets/images/play-btn.png')}/>
                         </View>
@@ -719,6 +754,19 @@ class ChatBox extends React.Component {
         })
     }
 
+    getThumbnailSeaveUrl(imgUrl) {
+        const url = '/index/user/up';
+        const formData = new FormData();
+        const arr = imgUrl.split('/');
+        const file = {uri: imgUrl, type: 'multipart/form-data', name: arr[arr.length - 1]};
+        formData.append('files', file);
+        return apiRequest(url, {
+            method: 'post',
+            mode: "cors",
+            body: formData
+        })
+    }
+
     /**
      * 拍摄
      * @param data
@@ -730,17 +778,33 @@ class ChatBox extends React.Component {
         if (type === 'video') {
             try {
                 const thumbnail = await RNThumbnail.get(uri);
+                const pathRes = await this.getThumbnailSeaveUrl(thumbnail.path);
+                let thumbnailPpath = '';
+                if (pathRes.code == 200) {
+                    thumbnailPpath = pathRes.res
+                }
                 content = {
                     objectName: ObjectName.File, local: uri, extra: JSON.stringify({
-                        path: thumbnail.path,
-                        type: 'video'
+                        path: thumbnailPpath,
+                        type: 'video',
+                        localPath: thumbnail.path,
+                        info:this.info,
+                        selfInfo:this.isGroup ? this.state.selfInfo : null
                     })
                 }
             } catch (e) {
                 alert('视频截图失败')
             }
         } else {
-            content = {objectName: ObjectName.Image, local: uri}
+            content = {
+                objectName: ObjectName.Image,
+                local: uri,
+                extra: JSON.stringify({
+                    type: 'image',
+                    info:this.info,
+                    selfInfo:this.isGroup ? this.state.selfInfo : null
+                })
+            }
         }
         /**
          * 上传消息
@@ -791,7 +855,9 @@ class ChatBox extends React.Component {
             local: 'file://' + url, // Android 使用文件方式发送
             extra: JSON.stringify({
                 duration,
-                type: 'voice'
+                type: 'voice',
+                info:this.info,
+                selfInfo:this.isGroup ? this.state.selfInfo : null
             })
         };
         MediaUtils.sendMediaMessage({
@@ -886,8 +952,8 @@ class ChatBox extends React.Component {
                         {!this.state.msgText ? <TouchableWithoutFeedback onPress={this.showMore.bind(this)}>
                                 <Image style={styles.barIcon} source={source.icon_more}/>
                             </TouchableWithoutFeedback> :
-                            <TouchableOpacity onPress={()=>this.sendMessage()} style={styles.subBtn}>
-                                <Text style={{color:'#fff'}}>发送</Text>
+                            <TouchableOpacity onPress={() => this.sendMessage()} style={styles.subBtn}>
+                                <Text style={{color: '#fff'}}>发送</Text>
                             </TouchableOpacity>}
                     </View>
                     <Animated.View style={[styles.moreContainer, {height: this.state.animatedValue}]}>
@@ -1080,11 +1146,11 @@ const styles = StyleSheet.create({
     subBtn: {
         width: 50,
         height: 30,
-        marginRight:5,
-        backgroundColor: '#18dd61',
-        borderRadius:5,
-        justifyContent:'center',
-        alignItems:'center'
+        marginRight: 5,
+        backgroundColor: '#196FF0',
+        borderRadius: 5,
+        justifyContent: 'center',
+        alignItems: 'center'
     }
 });
 

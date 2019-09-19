@@ -8,7 +8,9 @@ import {
     StatusBar,
     Dimensions,
     Image,
-    TouchableWithoutFeedback, Animated
+    TouchableWithoutFeedback,
+    Animated,
+    PermissionsAndroid
 } from 'react-native';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import {RNCamera} from 'react-native-camera';
@@ -27,7 +29,32 @@ export default class Camera extends PureComponent {
         scale:1,
         currentTime:0
     };
+    constructor(props){
+        super(props)
+        this.requestCameraPermission()
+    }
+    componentWillMount(){
+        // this.requestCameraPermission()
+
+    }
     componentWillUnmount(): void {
+    }
+    async requestCameraPermission() {
+        try {
+            const granted = await PermissionsAndroid.requestMultiple(
+                [
+                    PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+                    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+                ]
+            );
+            if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+                console.log('现在你获得摄像头权限了');
+            } else {
+               console.log('用户并不屌你');
+            }
+        } catch (err) {
+            console.warn(err);
+        }
     }
 
     /**
