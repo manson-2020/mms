@@ -60,11 +60,12 @@ export default class RedBagsDetailPage extends Component {
     }
 
     getSelfGeyMoney() {
-        const {code, isSelf, isGroup, res, ry_userid} = this.params;
+        const {code, isSelf, isGroup, res, ry_userid,self_id} = this.params;
         const {sum_money} = res;
-        const selfItem = res.have_list.filter((item) => item.userid === ry_userid);
+        const selfItem = res.have_list.filter((item) => item.userid === self_id);
+        console.log(selfItem)
         if (isGroup) {
-            return selfItem && Utils.returnFloat(selfItem[0]['rev_money'])
+            return selfItem.length>0 && Utils.returnFloat(selfItem[0]['rev_money'])
         } else {
             console.log(sum_money)
             return Utils.returnFloat(sum_money)
