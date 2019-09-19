@@ -44,7 +44,7 @@ export default class RedBagsDetailPage extends Component {
         if (isSelf) {
             if(code == 112 || code == 114){
                 return `红包金额${sum_money}元,已被对方领取`
-            }else if(code == 200 || code == 115 || code == 201) {
+            }else if(code == 200 || code == 115 || code == 201){
                 return `红包金额${sum_money}元,未被对方领取`
             }
 
