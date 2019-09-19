@@ -19,7 +19,7 @@ import {getConversation, ConversationType, getConversationList} from "rongcloud-
 import AsyncStorage from '@react-native-community/async-storage';
 import moment from 'moment';
 import TopBar from './components/TopBar';
-import {CONNECT_SUCCESS_RONGCLOUD} from '../../static'
+import {CONNECT_SUCCESS_RONGCLOUD, MESSAGE_CHANGE} from '../../static'
 import Utils from "../../util/Utils";
 
 class Message extends React.Component {
@@ -58,10 +58,19 @@ class Message extends React.Component {
                 this.dataRequest()
             }
         });
+        /**
+         * 监听有消息发送，有消息改变，刷新会话列表
+         */
+        this.mesageChanged=DeviceEventEmitter.addListener(MESSAGE_CHANGE,(data)=>{
+            if(data['mesChanged']){
+                this.dataRequest()
+            }
+        })
     }
 
     componentWillUnmount() {
         this.suclistener && this.suclistener.remove();
+        this.mesageChanged && this.mesageChanged.remove();
     }
 
     /**
@@ -146,7 +155,7 @@ class Message extends React.Component {
                         case 'video':
                             return '[视频]';
                         case 'voice':
-                            return ['语音']
+                            return '[语音]';
                         default:
                             return '[文件]'
                     }
@@ -156,9 +165,11 @@ class Message extends React.Component {
             }
         }
     }
-    goPage(info){
+
+    goPage(info) {
         this.props.navigation.navigate('ChatBox', info)
     }
+
     renderItem(item, index) {
         const {latestMessage, targetId, sentTime} = item;
         const {extra} = latestMessage;
@@ -167,7 +178,7 @@ class Message extends React.Component {
             const extraData = JSON.parse(extra);
             const {info, selfInfo} = extraData;
             return (
-                <TouchableOpacity onPress={() =>this.goPage(info)}>
+                <TouchableOpacity onPress={() => this.goPage(info)}>
                     <View style={styles.container}>
                         <View style={styles.leftView}>
                             {/* <View style={styles.marker}></View> */}
@@ -251,21 +262,11 @@ class Message extends React.Component {
                     <TouchableWithoutFeedback onPress={() => {
                         this.setState({showInput: !this.state.showInput})
                     }}>
-                        <View style={styles.searchMain}>
+                        <TouchableOpacity onPress={() => this.props.navigation.navigate('Search')}
+                                          style={styles.searchMain}>
                             <Image style={styles.icon} source={require("../assets/images/icon-search.png")}/>
-                            {
-                                this.state.showInput ?
-                                    <TextInput
-                                        autoFocus={true}
-                                        onChangeText={value => this.setState({searchValue: value})}
-                                        onBlur={() => {
-                                            this.state.searchValue || this.setState({showInput: false})
-                                        }}
-                                        style={styles.input}/>
-                                    :
-                                    <Text style={styles.text}>搜索</Text>
-                            }
-                        </View>
+                            <Text style={styles.text}>搜索</Text>
+                        </TouchableOpacity>
                     </TouchableWithoutFeedback>
                 </View>
                 <FlatList

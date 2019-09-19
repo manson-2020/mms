@@ -16,6 +16,8 @@ import {
     PermissionsAndroid,
     Keyboard,
     Dimensions,
+    DeviceEventEmitter,
+    Vibration,
 } from 'react-native';
 import TopBar from './components/TopBar';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -35,6 +37,7 @@ import RNThumbnail from "react-native-thumbnail";
 import VideoPlay from '../common/VideoPlay'
 import ViewerImageModal from '../common/ViewerImageModal'
 import GetRedBags from '../common/GetRedBags'
+import {MESSAGE_CHANGE} from '../../static'
 
 const {width}=Dimensions.get('window');
 // 18981796331
@@ -130,6 +133,9 @@ class ChatBox extends React.Component {
                                     this.setState((pre) => ({
                                         msgData: [nmes, ...pre.msgData],
                                     }));
+                                },
+                                success:()=>{
+                                    DeviceEventEmitter.emit(MESSAGE_CHANGE,{mesChanged:true})
                                 }
                             })
                         }
@@ -243,30 +249,32 @@ class ChatBox extends React.Component {
                     })
                 }).then(req => {
                     console.log('userInfo', req.res)
-                    this.setState({userInfo: req.res})
+                    this.setState({userInfo: req.res},()=>{
+                        getHistoryMessages(ConversationType.PRIVATE, this.targetId, [ObjectName.Text, ObjectName.Image, ObjectName.File], 0, 30)
+                            .then(async result => {
+                                console.log(result)
+                                const status = await this.setStatusRedBags(result, value[0][1]);
+                                status.forEach((itemStatus) => {
+                                    const {index, code} = itemStatus;
+                                    result[index]['redBagsCode'] = code
+                                });
+
+                                const imageUrls = [];
+                                result.map((item) => {
+                                    const {objectName, remote, local, thumbnail} = item['content'];
+                                    if (objectName === 'RC:ImgMsg') {
+                                        imageUrls.push({
+                                            url: local || thumbnail || remote, freeHeight: true
+                                        })
+                                    }
+
+                                });
+                                this.setState({msgData: result, imageUrls});
+                            });
+
+                    })
                 })
 
-                getHistoryMessages(ConversationType.PRIVATE, this.targetId, [ObjectName.Text, ObjectName.Image, ObjectName.File], 0, 30)
-                    .then(async result => {
-                        console.log(result)
-                        const status = await this.setStatusRedBags(result, value[0][1]);
-                        status.forEach((itemStatus) => {
-                            const {index, code} = itemStatus;
-                            result[index]['redBagsCode'] = code
-                        });
-
-                        const imageUrls = [];
-                        result.map((item) => {
-                            const {objectName, remote, local, thumbnail} = item['content'];
-                            if (objectName === 'RC:ImgMsg') {
-                                imageUrls.push({
-                                    url: local || thumbnail || remote, freeHeight: true
-                                })
-                            }
-
-                        });
-                        this.setState({msgData: result, imageUrls});
-                    });
 
             }
         });
@@ -475,7 +483,8 @@ class ChatBox extends React.Component {
                     this.setState({
                         msgData: [message, ...this.state.msgData],
                         msgText: ''
-                    })
+                    });
+                    DeviceEventEmitter.emit(MESSAGE_CHANGE,{mesChanged:true})
                 },
                 error: errorCode => {
                     console.warn("发送失败：" + errorCode);
@@ -510,7 +519,6 @@ class ChatBox extends React.Component {
                             objectName: ObjectName.File, local: path, extra: JSON.stringify({
                                 type: 'video',
                                 path: thumbnailPpath,
-                                localPath: thumbnail.path,
                                 info: this.info,
                                 selfInfo:this.isGroup ? this.state.selfInfo : null
                             })
@@ -552,6 +560,7 @@ class ChatBox extends React.Component {
                         });
                     },
                     success: (messageId, itemMes) => {
+                        DeviceEventEmitter.emit(MESSAGE_CHANGE,{mesChanged:true})
                     }
                 })
             });
@@ -686,7 +695,7 @@ class ChatBox extends React.Component {
                         activeposter: extra
                     })} style={styles.videoWrap}>
                         <Image style={{width: '100%', height: '100%',}}
-                               source={{uri: extradata['localPath'] || extradata['path']}}/>
+                               source={{uri:extradata['path']}}/>
                         <View style={styles.playBtnWrap}>
                             <Image style={{width: 40, height: 40,}} source={require('../assets/images/play-btn.png')}/>
                         </View>
@@ -828,7 +837,7 @@ class ChatBox extends React.Component {
                 }
             },
             success: (messageId, itemMes) => {
-
+                DeviceEventEmitter.emit(MESSAGE_CHANGE,{mesChanged:true})
             }
         })
     }
@@ -875,7 +884,7 @@ class ChatBox extends React.Component {
                 }));
             },
             success: (messageId, itemMes) => {
-
+                DeviceEventEmitter.emit(MESSAGE_CHANGE,{mesChanged:true})
             }
         })
     }

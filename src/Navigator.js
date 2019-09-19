@@ -23,6 +23,7 @@ import Test from './pages/Test';
 import QrScand from './common/qrScand';
 import SendRedBagsPage from './pages/RedBags/SendRedBagsPage';
 import RedBagsDetailPage from './pages/RedBags/RedBagsDetailPage';
+import SearchPage from './pages/SearchPage';
 import {CONNECT_SUCCESS_RONGCLOUD} from '../static'
 
 global.formDataObject = obj => {
@@ -212,6 +213,7 @@ const AppStack = createStackNavigator({
     QrScand: QrScand,
     SendRedBags: SendRedBagsPage,
     RedBagsDetail: RedBagsDetailPage,
+    Search: SearchPage,
     Test: Test
 }, {
         headerMode: 'none',
