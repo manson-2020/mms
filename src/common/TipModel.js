@@ -14,14 +14,12 @@ export default class TipModel extends Component {
         super(props);
 
     }
-
-
     render() {
         const {nativeEvent, hide,callBack} = this.props;
         if (!nativeEvent) return null;
         let {pageX, pageY,} = nativeEvent;
         if(pageX>150){
-            pageX= pageX-120
+            pageX= pageX-150
         }
         return <Modal isVisible={true}
                       animationIn="fadeIn"
@@ -31,7 +29,7 @@ export default class TipModel extends Component {
                       backdropTransitionOutTiming={0}
                       onBackdropPress={() => hide && hide()}
                       style={styles.modalWrap}>
-            <View style={[styles.listWrap, {left: pageX, top: pageY}]}>
+            <View style={[styles.listWrap, {left: pageX, top: pageY-15}]}>
                 <Text onPress={()=>callBack && callBack('del')} style={styles.itemWrap}>删除该聊天</Text>
                 {/*<Text style={styles.itemWrap}>标记为已读</Text>*/}
             </View>
@@ -58,8 +56,8 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         borderColor: '#000',
         position: 'absolute',
-        left: 100,
-        top: 100,
+        left:0,
+        top: 0,
         zIndex: 10,
         backgroundColor: '#fff'
     },

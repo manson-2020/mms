@@ -23,8 +23,10 @@ import {
     getConversationList,
     addReceiveMessageListener
 } from "rongcloud-react-native-imlib";
+import AsyncStorage from '@react-native-community/async-storage';
+import moment from 'moment';
 import TopBar from './components/TopBar';
-import { CONNECT_SUCCESS_RONGCLOUD, MESSAGE_CHANGE } from '../../static'
+import {CONNECT_SUCCESS_RONGCLOUD, MESSAGE_CHANGE} from '../../static'
 import Utils from "../../util/Utils";
 import TipModel from '../common/TipModel'
 
@@ -46,7 +48,6 @@ class Message extends React.Component {
             showTipModal: false,
             isActive: false
         };
-       
         this.index = -1;
         this.MaxHeight = Dimensions.get('window').height;
         this.MaxWidth = Dimensions.get('window').width;
@@ -61,11 +62,13 @@ class Message extends React.Component {
          */
         if (global[CONNECT_SUCCESS_RONGCLOUD]) {
             this.suclistener && this.suclistener.remove();
+            console.log('CONNECT_SUCCESS_RONGCLOUD 收到消息1')
             this.dataRequest();
             return;
         }
         this.suclistener = DeviceEventEmitter.addListener(CONNECT_SUCCESS_RONGCLOUD, (message) => {
             if (message['suc']) {
+                console.log('CONNECT_SUCCESS_RONGCLOUD 收到消息2')
                 this.dataRequest()
             }
         });
@@ -74,7 +77,7 @@ class Message extends React.Component {
          */
         this.mesageChanged = DeviceEventEmitter.addListener(MESSAGE_CHANGE, (data) => {
             if (data['mesChanged']) {
-                console.log('mesChanged', data)
+                console.log('mesChanged', data);
                 this.dataRequest()
             }
         });
@@ -84,6 +87,7 @@ class Message extends React.Component {
          */
         this.receiveMes = addReceiveMessageListener((mes) => {
             if (mes) {
+                console.log('messgage 收到消息')
                 this.dataRequest();
             }
         })
@@ -92,7 +96,7 @@ class Message extends React.Component {
     componentWillUnmount() {
         this.suclistener && this.suclistener.remove();
         this.mesageChanged && this.mesageChanged.remove();
-        this.receiveMes = null;
+        this.receiveMes && this.receiveMes.remove()
     }
 
     /**
@@ -113,7 +117,7 @@ class Message extends React.Component {
                 })
             }).then((res) => {
                 if (res.code == 200) {
-                    resolve({ ...res.res, index })
+                    resolve({...res.res, index})
                 } else {
                     reject(res)
                 }
@@ -129,7 +133,7 @@ class Message extends React.Component {
      */
     async dataRequest() {
         try {
-            this.setState({ refreshing: true });
+            this.setState({refreshing: true});
             const list = await getConversationList().catch((e) => alert('获取容云数据失败'));
             if (list) {
                 this.setState({
@@ -139,25 +143,25 @@ class Message extends React.Component {
             }
             console.log(list);
         } catch (e) {
-            this.setState({ refreshing: false });
+            this.setState({refreshing: false});
             console.log(e)
         }
     }
 
     showOption() {
-        this.setState({ showOption: !this.state.showOption, angle: 0 });
-        Animated.timing(this.state.fadeAnim, { toValue: this.state.showOption ? 118 : 0, duration: 300, }).start();
+        this.setState({showOption: !this.state.showOption, angle: 0});
+        Animated.timing(this.state.fadeAnim, {toValue: this.state.showOption ? 118 : 0, duration: 300,}).start();
     }
 
     /**
      * 根据消息类型 返回不同的文本
      **/
     getMesText(latestMessage) {
-        const { objectName, extra, content } = latestMessage;
+        const {objectName, extra, content} = latestMessage;
         if (objectName === 'RC:TxtMsg') {
             if (extra) {
                 try {
-                    const { type } = JSON.parse(extra);
+                    const {type} = JSON.parse(extra);
                     if (type === 'redBags') {
                         return '[红包]'
                     } else {
@@ -172,7 +176,7 @@ class Message extends React.Component {
         } else if (objectName === 'RC:FileMsg') {
             if (extra) {
                 try {
-                    const { type } = JSON.parse(extra);
+                    const {type} = JSON.parse(extra);
                     switch (type) {
                         case 'video':
                             return '[视频]';
@@ -195,20 +199,20 @@ class Message extends React.Component {
     }
 
     renderItem(item, index) {
-        const { latestMessage, targetId, sentTime } = item;
-        const { extra } = latestMessage;
+        const {latestMessage, targetId, sentTime} = item;
+        const {extra} = latestMessage;
         const isGroup = /group/.test(targetId);
         try {
             const extraData = JSON.parse(extra);
-            const { info, selfInfo } = extraData;
+            const {info, selfInfo} = extraData;
             return (
                 <TouchableOpacity
-                    style={{ backgroundColor: this.state.isActive ? '#ddd' : '#fff' }}
+                    style={{backgroundColor: this.state.isActive && this.index === index ? '#ddd' : '#fff'}}
                     onLongPress={(event) => {
-                        const { nativeEvent } = event;
-                        this.setState({ nativeEvent, isActive: true }, () => {
+                        const {nativeEvent} = event;
+                        this.setState({nativeEvent, isActive: true}, () => {
                             this.index = index;
-                            this.setState({ showTipModal: true })
+                            this.setState({showTipModal: true})
                         })
                     }}
                     onPress={() => this.goPage(info)}>
@@ -218,7 +222,7 @@ class Message extends React.Component {
                             <Image
                                 style={styles.avatar}
                                 defaultSource={require('../assets/images/default_avatar.png')}
-                                source={{ uri: isGroup ? info['group_img'] : info['header_img'] }}
+                                source={{uri: isGroup ? info['group_img'] : info['header_img']}}
                             />
                         </View>
                         <View style={styles.main}>
@@ -244,16 +248,15 @@ class Message extends React.Component {
      * 扫描二维码
      */
     openQrcode() {
-        const { navigation } = this.props;
+        const {navigation} = this.props;
         navigation.navigate('QrScand', {
             /**
              * 接收扫描结果
              * @param res
              */
-            callBack: async res => {
-                if (res.data.indexOf("group") == -1) {
-                    navigation.navigate('UserInfo', { userInfo: { userid: res.data } });
-                }
+            callBack: async (res) => {
+                console.log(res);
+
             }
         })
     }
@@ -263,43 +266,44 @@ class Message extends React.Component {
      * @param key
      */
     selectTipItem(key) {
-        this.setState({ showTipModal: false, isActive: false });
+        this.setState({showTipModal: false, isActive: false});
         switch (key) {
             case 'del':
                 this._removeConversation();
                 break
         }
     }
+
     async _removeConversation() {
-        const { conversationType, targetId } = this.state.data[this.index];
+        const {conversationType, targetId} = this.state.data[this.index];
         const res = await removeConversation(conversationType, targetId);
         this.setState((pre) => {
-            const { data } = pre;
+            const {data} = pre;
             data.splice(this.index, 1);
-            return { data }
+            return {data}
         })
     }
 
     render() {
-        const { nativeEvent, showTipModal } = this.state;
+        const {nativeEvent, showTipModal} = this.state;
         return (
-            <View style={{ flex: 1 }}>
-                <StatusBar translucent={true} backgroundColor="transparent" barStyle='dark-content' />
-                <TopBar title="彩信" rightIcon="icon_plus" rightPress={this.showOption.bind(this)} />
-                <Animated.View style={{ overflow: "hidden", height: this.state.fadeAnim }}>
+            <View style={{flex: 1}}>
+                <StatusBar translucent={true} backgroundColor="transparent" barStyle='dark-content'/>
+                <TopBar title="彩信" rightIcon="icon_plus" rightPress={this.showOption.bind(this)}/>
+                <Animated.View style={{overflow: "hidden", height: this.state.fadeAnim}}>
                     <View style={styles.optionMain}>
                         <TouchableOpacity onPress={() => this.openQrcode()}>
                             <View style={styles.optionContent}>
-                                <Image style={{ width: 22, height: 22 }}
-                                    source={require('../assets/images/scan-icon.png')} />
+                                <Image style={{width: 22, height: 22}}
+                                       source={require('../assets/images/scan-icon.png')}/>
                                 <Text style={styles.optionText}>扫一扫</Text>
                             </View>
                         </TouchableOpacity>
                         <TouchableOpacity
-                            onPress={() => this.props.navigation.navigate('AddFriend', { refresh: () => this.showOption() })}>
+                            onPress={() => this.props.navigation.navigate('AddFriend', {refresh: () => this.showOption()})}>
                             <View style={styles.optionContent}>
-                                <Image style={{ width: 23, height: 21 }}
-                                    source={require('../assets/images/add_friend-icon.png')} />
+                                <Image style={{width: 23, height: 21}}
+                                       source={require('../assets/images/add_friend-icon.png')}/>
                                 <Text style={styles.optionText}>添加朋友</Text>
                             </View>
                         </TouchableOpacity>
@@ -308,8 +312,8 @@ class Message extends React.Component {
                             page: "InitGroupChat"
                         })}>
                             <View style={styles.optionContent}>
-                                <Image style={{ width: 27, height: 20 }}
-                                    source={require('../assets/images/invite_group-icon.png')} />
+                                <Image style={{width: 27, height: 20}}
+                                       source={require('../assets/images/invite_group-icon.png')}/>
                                 <Text style={styles.optionText}>邀请群聊</Text>
                             </View>
                         </TouchableOpacity>
@@ -317,32 +321,31 @@ class Message extends React.Component {
                 </Animated.View>
 
                 <View style={styles.searchContainer}>
-
                     <TouchableWithoutFeedback onPress={() => {
-                        this.setState({ showInput: !this.state.showInput })
+                        this.setState({showInput: !this.state.showInput})
                     }}>
                         <TouchableOpacity onPress={() => this.props.navigation.navigate('Search')}
-                            style={styles.searchMain}>
-                            <Image style={styles.icon} source={require("../assets/images/icon-search.png")} />
+                                          style={styles.searchMain}>
+                            <Image style={styles.icon} source={require("../assets/images/icon-search.png")}/>
                             <Text style={styles.text}>搜索</Text>
                         </TouchableOpacity>
                     </TouchableWithoutFeedback>
                 </View>
                 <FlatList
-                    style={{ flex: 1 }}
+                    style={{flex: 1}}
                     onLayout={e => {
                         if (this.state.flatlistHeight < e.nativeEvent.layout.height) {
-                            this.setState({ flatlistHeight: e.nativeEvent.layout.height })
+                            this.setState({flatlistHeight: e.nativeEvent.layout.height})
                         }
                     }}
                     data={this.state.data}
                     keyExtractor={(item, index) => index.toString()}
-                    renderItem={({ item, index }) => this.renderItem(item, index)}
+                    renderItem={({item, index}) => this.renderItem(item, index)}
                     refreshControl={
                         <RefreshControl
                             title={'Loading'}
                             refreshing={this.state.refreshing}
-                            onRefresh={() => this.dataRequest()}
+                            onRefresh={() =>{}}
                         />
                     }
                     ListEmptyComponent={() => (
@@ -352,17 +355,17 @@ class Message extends React.Component {
                             alignItems: "center",
                             justifyContent: "center"
                         }}>
-                            <Image style={{ width: 136, height: 99 }}
-                                source={require("../assets/images/default_message_bg.png")} />
-                            <Text style={{ color: "#999", marginTop: 16 }}>暂无新消息</Text>
+                            <Image style={{width: 136, height: 99}}
+                                   source={require("../assets/images/default_message_bg.png")}/>
+                            <Text style={{color: "#999", marginTop: 16}}>暂无新消息</Text>
                         </View>
                     )}
                 />
                 {showTipModal ? <TipModel
-                    ref={(ref) => this.tipModal = ref}
-                    hide={() => this.setState({ showTipModal: false, isActive: false })}
-                    callBack={(key) => this.selectTipItem(key)}
-                    nativeEvent={nativeEvent} />
+                        ref={(ref) => this.tipModal = ref}
+                        hide={() => this.setState({showTipModal: false, isActive: false})}
+                        callBack={(key) => this.selectTipItem(key)}
+                        nativeEvent={nativeEvent}/>
                     : null
                 }
             </View>
@@ -471,7 +474,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         backgroundColor: "#fff",
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 0 },
+        shadowOffset: {width: 0, height: 0},
         shadowOpacity: 0.2,
         shadowRadius: 10,
         elevation: 2

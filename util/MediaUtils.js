@@ -13,9 +13,9 @@ import {RNCamera} from 'react-native-camera';
  * @type {{cropping: boolean, width: number, height: number}}
  */
 const baseOptions = {
-    compressImageMaxWidth: 300,
-    compressImageMaxHeight: 400,
-    compressImageQuality: 0.4,
+    // compressImageMaxWidth: 300,
+    // compressImageMaxHeight: 400,
+    // compressImageQuality: 0.4,
     cropping: false,
 };
 const coptions = {quality: 0.5, base64: false};

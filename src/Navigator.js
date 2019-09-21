@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, ActivityIndicator, StatusBar, DeviceEventEmitter } from 'react-native';
 import { createAppContainer, createStackNavigator, createSwitchNavigator } from 'react-navigation';
 import AsyncStorage from '@react-native-community/async-storage';
+import SplashScreen from 'react-native-splash-screen'
 import { init, connect, addReceiveMessageListener } from "rongcloud-react-native-imlib";
 import pinyin from 'pinyin';
 import Config from "./config.json";
@@ -19,14 +20,13 @@ import GroupInfoScreen from './pages/GroupInfo';
 import FriendListScreen from './pages/FriendList';
 import WalletScreen from './pages/Wallet';
 import BudgetScreen from './pages/Budget';
-import AboutScreen from './pages/About';
-import NotifyScreen from './pages/Notify';
 import Test from './pages/Test';
 import QrScand from './common/qrScand';
 import SendRedBagsPage from './pages/RedBags/SendRedBagsPage';
 import RedBagsDetailPage from './pages/RedBags/RedBagsDetailPage';
 import SearchPage from './pages/SearchPage';
-import { CONNECT_SUCCESS_RONGCLOUD } from '../static'
+
+import {CONNECT_SUCCESS_RONGCLOUD} from '../static'
 
 global.formDataObject = obj => {
     let formData = new FormData();
@@ -140,16 +140,17 @@ global.dataGroup = initData => {
     });
     return group;
 };
-global[CONNECT_SUCCESS_RONGCLOUD] = false;
+global[CONNECT_SUCCESS_RONGCLOUD]=false;
 
 class AuthLoadingScreen extends React.Component {
     constructor() {
         super();
+        SplashScreen.hide();
         init(Config.AppKey);
         this._bootstrapAsync();
-
         //监听接收消息
-        addReceiveMessageListener(result => {
+
+        this.addListener=addReceiveMessageListener(result => {
             //取反表示群聊
             if (result.message.targetId.indexOf("group")) {
                 DeviceEventEmitter.emit('new Message', result);
@@ -158,8 +159,8 @@ class AuthLoadingScreen extends React.Component {
     }
 
     onSuccess(userId) {
-        global[CONNECT_SUCCESS_RONGCLOUD] = true;
-        DeviceEventEmitter.emit(CONNECT_SUCCESS_RONGCLOUD, { suc: true, userId });
+        global[CONNECT_SUCCESS_RONGCLOUD]=true;
+        DeviceEventEmitter.emit(CONNECT_SUCCESS_RONGCLOUD, {suc:true,userId});
         console.log("连接成功：" + userId);
     }
 
@@ -212,27 +213,25 @@ const AppStack = createStackNavigator({
     FriendList: FriendListScreen,
     Wallet: WalletScreen,
     Budget: BudgetScreen,
-    About: AboutScreen,
-    Notify: NotifyScreen,
     QrScand: QrScand,
     SendRedBags: SendRedBagsPage,
     RedBagsDetail: RedBagsDetailPage,
     Search: SearchPage,
     Test: Test
 }, {
-    headerMode: 'none',
-    // initialRouteName: 'Wallet',
-    //  headerLayoutPreset: 'center',
-});
+        headerMode: 'none',
+        // initialRouteName: 'Setting',
+        //  headerLayoutPreset: 'center',
+    });
 
 const AuthStack = createStackNavigator(
     {
         LoginRigister: LoginRigisterScreen,
         ForgetPwd: ForgetPwdScreen
     }, {
-    headerMode: 'none',
-    // initialRouteName: 'ForgetPwd'
-});
+        headerMode: 'none',
+        // initialRouteName: 'ForgetPwd'
+    });
 
 export default createAppContainer(createSwitchNavigator(
     {
