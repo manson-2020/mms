@@ -546,6 +546,7 @@ class ChatBox extends React.Component {
                         })
                     };
                 }
+                
                 //发送
                 content && MediaUtils.sendMediaMessage({
                     content,

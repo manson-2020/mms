@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import {
     View,
     Text,
@@ -13,10 +13,10 @@ import InputPayPasswordModal from '../../common/InputPayPasswordModal'
 import Utils from '../../../util/Utils'
 import AsyncStorage from "@react-native-community/async-storage";
 
-const InputItem = ({title, showRightText = true, inputStyle, ...inputProps}) => {
+const InputItem = ({ title, showRightText = true, inputStyle, ...inputProps }) => {
     return <View style={styles.itemWrap}>
         <Text style={styles.title}>{title}</Text>
-        <TextInput style={[styles.input, inputStyle]} {...inputProps}/>
+        <TextInput style={[styles.input, inputStyle]} {...inputProps} />
         {showRightText ? <Text style={styles.bolddText}>元</Text> : null}
     </View>
 };
@@ -36,11 +36,11 @@ export default class SendRedBagsPage extends Component {
     }
 
     closePayPassword() {
-        this.setState({showPayPassword: false})
+        this.setState({ showPayPassword: false })
     }
 
     showPayPassword() {
-        this.setState({showPayPassword: true})
+        this.setState({ showPayPassword: true })
     }
 
     /**
@@ -51,7 +51,7 @@ export default class SendRedBagsPage extends Component {
 
         const token = await AsyncStorage.getItem('token');
         const url = '/index/redmoney/redmoney_create';
-        const {rm_money, max_rev} = this.state;
+        const { rm_money, max_rev } = this.state;
         // token	用户身份认证	string	Y	-
         // rm_money	红包金额	string	Y	-
         // rm_type	红包类型 1单聊 3群随机 4众筹随机	string	Y	-
@@ -98,7 +98,7 @@ export default class SendRedBagsPage extends Component {
     }
 
     canSend() {
-        const {rm_money, max_rev} = this.state;
+        const { rm_money, max_rev } = this.state;
         if (this.isPerson) {
             if (rm_money && rm_money > 0) {
                 return true
@@ -111,48 +111,48 @@ export default class SendRedBagsPage extends Component {
     }
 
     render() {
-        const {rm_money, max_rev, showPayPassword} = this.state;
+        const { rm_money, max_rev, showPayPassword } = this.state;
 
         return <View style={styles.container}>
-            <StatusBar translucent={true} backgroundColor="transparent" barStyle='dark-content'/>
+            <StatusBar translucent={true} backgroundColor="transparent" barStyle='dark-content' />
             <TopBar
                 leftText={'取消'}
                 leftPress={() => this.props.navigation.goBack()}
                 title={'发红包'}
             />
-            <View style={{flex:1}}>
-                <ScrollView style={{backgroundColor: '#f5f5f5'}}>
+            <View style={{ flex: 1 }}>
+                <ScrollView style={{ backgroundColor: '#f5f5f5' }}>
                     <InputItem title={'金额'}
-                               keyboardType={'numeric'}
-                               placeholder={'请输入金额'}
-                               defaultValue={rm_money}
-                               onChangeText={(rm_money) => this.setState(() => {
-                                   return {
-                                       rm_money: Utils.clearNoNum(rm_money)
-                                   }
-                               })}
-                               value={rm_money}/>
+                        keyboardType={'numeric'}
+                        placeholder={'请输入金额'}
+                        defaultValue={rm_money}
+                        onChangeText={(rm_money) => this.setState(() => {
+                            return {
+                                rm_money: Utils.clearNoNum(rm_money)
+                            }
+                        })}
+                        value={rm_money} />
                     {!this.isPerson ? <InputItem title={'人数'}
-                                                 placeholder={'请输入人数'}
-                                                 showRightText={false}
-                                                 onChangeText={(max_rev) => this.setState(() => {
-                                                     max_rev = max_rev.replace(/[^\d]+/, '');
-                                                     return {
-                                                         max_rev
-                                                     }
-                                                 })}
-                                                 inputStyle={{textAlign: 'left'}}
-                                                 value={max_rev}/> : null
+                        placeholder={'请输入人数'}
+                        showRightText={false}
+                        onChangeText={(max_rev) => this.setState(() => {
+                            max_rev = max_rev.replace(/[^\d]+/, '');
+                            return {
+                                max_rev
+                            }
+                        })}
+                        inputStyle={{ textAlign: 'left' }}
+                        value={max_rev} /> : null
                     }
 
                     <InputItem title={'祝福语'}
-                               placeholder={'恭喜发财吉祥如意'}
-                               showRightText={false}
-                               inputStyle={{textAlign: 'left'}}
-                               value={0.00}/>
+                        placeholder={'恭喜发财吉祥如意'}
+                        showRightText={false}
+                        inputStyle={{ textAlign: 'left' }}
+                        value={0.00} />
 
                     <View style={styles.nubWrap}>
-                        <Text style={[styles.moneyNub, {fontSize: 28, marginTop: -1}]}>¥</Text>
+                        <Text style={[styles.moneyNub, { fontSize: 28, marginTop: -1 }]}>¥</Text>
                         <Text style={styles.moneyNub}>{Utils.returnFloat(rm_money)}</Text>
                     </View>
                     <TouchableOpacity style={styles.btnWrap} onPress={() => {
@@ -162,15 +162,16 @@ export default class SendRedBagsPage extends Component {
                     }}>
                         <Text
                             style={[styles.subBtn, {
-                                backgroundColor: this.canSend()? '#FF5353FF' : '#FF535366'
+                                backgroundColor: this.canSend() ? '#FF5353FF' : '#FF535366'
                             }]}>赛钱进红包</Text>
                     </TouchableOpacity>
                     {showPayPassword ? <InputPayPasswordModal
-                        ref={(ref) => this.inputPayPassword = ref}
-                        rm_money={rm_money}
+                        ref={ref => this.inputPayPassword = ref}
+                        rm_money={Utils.returnFloat(rm_money)}
+                        tips="支付密码"
                         close={() => this.closePayPassword()}
                         show={() => this.showPayPassword()}
-                        callBack={(pay_pwd) => this.sendRedBags(pay_pwd)}
+                        callBack={pay_pwd => this.sendRedBags(pay_pwd)}
                     /> : null}
                 </ScrollView>
             </View>

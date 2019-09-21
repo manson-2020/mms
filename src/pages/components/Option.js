@@ -1,5 +1,15 @@
 import React from 'react';
-import {View, Text, StyleSheet, Image, TouchableHighlight, TextInput, BackHandler, Platform} from 'react-native';
+import {
+    View,
+    Text,
+    StyleSheet,
+    Image,
+    TouchableHighlight,
+    TextInput,
+    BackHandler,
+    Platform,
+    TouchableOpacity
+} from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import Dialog,
 {
@@ -21,22 +31,26 @@ export default class Option extends React.Component {
         super(props);
         this.state = {
             data: [],
-            NickNamePoup: false,
-            QrCodePoup: false,
-            SexPoup: false,
-            AreaPoup: false,
-            TiesNumberPoup: true,
+
+            NickNamePopup: false,
+            QrCodePopup: false,
+            SexPopup: false,
+            AreaPopup: false,
+            TiesNumberPopup: false,
+            FeedbackPopup: false,
+            showHeaderPopup: false,
 
             nickname: false,
             area: false,
             sex: false,
             qrCode: false,
-            phone: false,
-            showHeaderPoup: false
+            phoneNumber: false,
+            verfiyCode: false,
+
+            countdownState: true,
+            countdownText: '获取验证码',
         };
-        this.rowIndex0 = 0;
-        this.rowIndex1 = 0;
-        this.rowIndex2 = 0;
+        this.rowIndex0 = this.rowIndex1 = this.rowIndex2 = 0;
         this.ChinaArea = cityCode.CityZoneCode.China;
         this.data = props.data;
         this.icon = {
@@ -46,14 +60,14 @@ export default class Option extends React.Component {
     }
 
     onBackButtonPressAndroid = () => {
-        if (this.state.showHeaderPoup || this.state.NickNamePoup || this.state.QrCodePoup || this.state.SexPoup || this.state.AreaPoup || this.state.TiesNumberPoup) {
+        if (this.state.showHeaderPopup || this.state.NickNamePopup || this.state.QrCodePopup || this.state.SexPopup || this.state.AreaPopup || this.state.TiesNumberPopup) {
             this.setState({
-                NickNamePoup: false,
-                QrCodePoup: false,
-                SexPoup: false,
-                AreaPoup: false,
-                TiesNumberPoup: false,
-                showHeaderPoup: false
+                NickNamePopup: false,
+                QrCodePopup: false,
+                SexPopup: false,
+                AreaPopup: false,
+                TiesNumberPopup: false,
+                showHeaderPopup: false
             });
             return true; //返回true, 不执行系统操作。
         }
@@ -75,15 +89,39 @@ export default class Option extends React.Component {
         }
     }
 
-    cancle(poup) {
-        this.setState({[poup]: false})
+    cancle(popup) {
+        this.setState({ [popup]: false })
     }
 
-    dataRequest(params, paramsBody, poup) {
+    countdown() {
+        if (this.state.countdownState) {
+            let i = 60;
+            this.setState({
+                countdownState: false,
+                countdownText: i + 's后重新获取'
+            }, this.dataRequest.bind(this, "sendVerfiyCode"));
+            this.timer = setInterval(() => {
+                this.setState({
+                    countdownState: false,
+                    countdownText: `${i--}s后重新获取`
+                });
+                if (!i) {
+                    clearInterval(this.timer);
+                    this.setState({
+                        countdownState: true,
+                        countdownText: '重新获取'
+                    });
+                }
+            }, 1000)
+        }
+        return false;
+    }
+
+    dataRequest(params, paramsBody, popup) {
         /**
          *  @param params 传入请求的方法名
          *  @param paramsBody object, 传入需要修改的键值
-         *  @param poup sxtring, 传入需要关闭的弹窗
+         *  @param popup sxtring, 传入需要关闭的弹窗
          */
         AsyncStorage.getItem('token').then(token => {
             switch (params) {
@@ -99,12 +137,12 @@ export default class Option extends React.Component {
                             switch (item.text) {
                                 case "我的头像":
                                     this.data[index].image = result.res.header_img;
-                                    item.method = () => this.setState({showHeaderPoup: true});
+                                    item.method = () => this.setState({ showHeaderPopup: true });
                                     break;
                                 case "我的昵称":
                                     this.data[index].rightText = result.res.username;
                                     this.data[index].method = () => this.setState({
-                                        NickNamePoup: true,
+                                        NickNamePopup: true,
                                         nickname: result.res.username
                                     });
                                     break;
@@ -113,25 +151,25 @@ export default class Option extends React.Component {
                                     break;
                                 case "我的二维码":
                                     this.data[index].method = () => this.setState({
-                                        QrCodePoup: true,
+                                        QrCodePopup: true,
                                         qrCode: result.res.qr_img
                                     });
                                     break;
                                 case "性别":
                                     this.data[index].rightText = result.res.sex;
-                                    this.data[index].method = () => this.setState({SexPoup: true, sex: result.res.sex});
+                                    this.data[index].method = () => this.setState({ SexPopup: true, sex: result.res.sex });
                                     break;
                                 case "地区":
                                     this.data[index].rightText = result.res.city;
                                     this.data[index].method = () => this.setState({
-                                        AreaPoup: true,
+                                        AreaPopup: true,
                                         area: result.res.city
                                     });
                                     break;
                             }
                         });
 
-                        this.setState({data: this.data})
+                        this.setState({ data: this.data })
                     })
                     break;
                 case "getNumber":
@@ -143,16 +181,27 @@ export default class Option extends React.Component {
                         })
                     }).then(req => {
                         this.data.map((item, index) => {
-                            if (item.text == "绑定手机号") {
-                                this.data[index].rightText = req.res.phone;
-                                this.data[index].method = () => this.setState({
-                                    TiesNumberPoup: true,
-                                    phone: req.res.phone
-                                });
+                            switch (item.text) {
+                                case "绑定手机号":
+                                    this.data[index].rightText = req.res.phone;
+                                    this.data[index].method = () => this.setState({ TiesNumberPopup: true, phone: req.res.phone });
+                                    break;
+                                case "帮助与反馈":
+                                    this.data[index].method = () => this.setState({ FeedbackPopup: true });
+                                    break;
                             }
                         })
-                        this.setState({data: this.data})
+                        this.setState({ data: this.data })
                     })
+                    break;
+                case "sendVerfiyCode":
+                    apiRequest('/index/user/sendsms', {
+                        method: 'post',
+                        mode: "cors",
+                        body: JSON.stringify({
+                            phone: this.state.phoneNumber
+                        })
+                    }).then(req => req.code == 200 && alert(req.msg))
                     break;
                 case "confirm":
                     apiRequest('/index/userinfo/updateinfo', {
@@ -164,9 +213,24 @@ export default class Option extends React.Component {
                         })
                     }).then(result => {
                         if (result.code == 200) {
-                            this.setState({[poup]: false}, this.dataRequest.bind(this, "getSelfInfo"));
+                            this.setState({ [popup]: false }, this.dataRequest.bind(this, "getSelfInfo"));
                         }
                     });
+                    break;
+                case "phoneSubmit":
+                    apiRequest('/index/userinfo/bind_phone_do', {
+                        method: 'post',
+                        mode: "cors",
+                        body: formDataObject({
+                            token: token,
+                            phone: this.state.phoneNumber,
+                            ver_code: this.state.verfiyCode,
+                        })
+                    }).then(req => {
+                        if (req.code == 200) {
+                            this.setState({ [popup]: false, phoneNumber: null, verfiyCode: null }, this.dataRequest.bind(this, "getNumber"));
+                        }
+                    })
                     break;
             }
         })
@@ -178,17 +242,17 @@ export default class Option extends React.Component {
      * @returns {*}
      * @constructor
      */
-    ChangeHeaderPoup = () => (
+    ChangeHeaderPopup = () => (
         <Dialog
             width={0.8}
-            dialogTitle={<DialogTitle title="修改头像"/>}
+            dialogTitle={<DialogTitle title="修改头像" />}
             dialogAnimation={new ScaleAnimation()}
-            visible={this.state.showHeaderPoup}
-            onTouchOutside={() => this.setState({showHeaderPoup: false})}
+            visible={this.state.showHeaderPopup}
+            onTouchOutside={() => this.setState({ showHeaderPopup: false })}
         >
-            <DialogContent style={{alignItems: "center"}}>
+            <DialogContent style={{ alignItems: "center" }}>
                 <Text style={styles.headerItem} onPress={() => this.getImge('camera')}>拍照</Text>
-                <Text style={styles.line}/>
+                <Text style={styles.line} />
                 <Text style={styles.headerItem} onPress={() => this.getImge('album')}>从相册选取</Text>
             </DialogContent>
         </Dialog>
@@ -201,30 +265,30 @@ export default class Option extends React.Component {
      */
     async getImge(type) {
         try {
-            this.setState({showHeaderPoup:false});
+            this.setState({ showHeaderPopup: false });
             const option = {
                 mediaType: 'photo',
                 cropping: true,
                 includeBase64: true,
-                multiple:false,
+                multiple: false,
             };
             const result = type === 'album' ? await MediaUtils.openPicker(option) : await MediaUtils.openCamera(option);
-            const img='data:image/jpg;base64,'+result.data;
+            const img = 'data:image/jpg;base64,' + result.data;
             const url = '/index/userinfo/updateheaderimg';
-            const token=await AsyncStorage.getItem('token').catch(()=>alert('获取token失败'));
-            apiRequest(url,{
+            const token = await AsyncStorage.getItem('token').catch(() => alert('获取token失败'));
+            apiRequest(url, {
                 method: 'post',
                 mode: "cors",
-                body: JSON.stringify({token,img})
-            }).then((res)=>{
-                if(res['code'] == 200){
+                body: JSON.stringify({ token, img })
+            }).then((res) => {
+                if (res['code'] == 200) {
                     alert(res['msg']);
-                    this.setState((pre)=>{
-                        pre['data'][0]['image']=res['res']['img'];
-                        return {data:pre.data}
+                    this.setState((pre) => {
+                        pre['data'][0]['image'] = res['res']['img'];
+                        return { data: pre.data }
                     })
                 }
-            },(e)=>{
+            }, (e) => {
                 console.log(e)
             });
 
@@ -234,20 +298,20 @@ export default class Option extends React.Component {
         }
     }
 
-    NickNamePoup = () => (
+    NickNamePopup = () => (
         <Dialog
             width={0.8}
-            dialogTitle={<DialogTitle title="修改昵称"/>}
-            dialogAnimation={new SlideAnimation({slideFrom: 'right'})}
-            visible={this.state.NickNamePoup}
+            dialogTitle={<DialogTitle title="修改昵称" />}
+            dialogAnimation={new SlideAnimation({ slideFrom: 'right' })}
+            visible={this.state.NickNamePopup}
         >
-            <DialogContent style={{height: 60, alignItems: "center"}}>
+            <DialogContent style={{ height: 60, alignItems: "center" }}>
                 <TextInput
-                    style={{width: "100%", height: 60, textAlign: "center"}}
+                    style={{ width: "100%", height: 60, textAlign: "center" }}
                     placeholder="请输入你要改的昵称"
                     maxLength={27}
                     autoFocus={true}
-                    onChangeText={nickname => this.setState({nickname: nickname})}
+                    onChangeText={nickname => this.setState({ nickname: nickname })}
                     value={this.state.nickname}
                 />
             </DialogContent>
@@ -255,51 +319,51 @@ export default class Option extends React.Component {
             <DialogFooter>
                 <DialogButton
                     text="取消"
-                    textStyle={{fontSize: 14}}
-                    onPress={this.cancle.bind(this, "NickNamePoup")}
+                    textStyle={{ fontSize: 14 }}
+                    onPress={this.cancle.bind(this, "NickNamePopup")}
                 />
                 <DialogButton
                     text="确认"
-                    textStyle={{fontSize: 14}}
-                    onPress={this.dataRequest.bind(this, "confirm", {username: this.state.nickname}, 'NickNamePoup')}
+                    textStyle={{ fontSize: 14 }}
+                    onPress={this.dataRequest.bind(this, "confirm", { username: this.state.nickname }, 'NickNamePopup')}
                 />
             </DialogFooter>
         </Dialog>
     )
 
-    QrCodePoup = () => (
+    QrCodePopup = () => (
         <Dialog
             width={0.8}
-            dialogTitle={<DialogTitle title="我的二维码"/>}
+            dialogTitle={<DialogTitle title="我的二维码" />}
             dialogAnimation={new ScaleAnimation()}
-            visible={this.state.QrCodePoup}
-            onTouchOutside={() => this.setState({QrCodePoup: false})}
+            visible={this.state.QrCodePopup}
+            onTouchOutside={() => this.setState({ QrCodePopup: false })}
         >
-            <DialogContent style={{alignItems: "center"}}>
-                <Image style={styles.qrCode} source={{uri: this.state.qrCode}}/>
-                <Text style={{color: "#999"}}>扫描上面二维码，加我彩信</Text>
+            <DialogContent style={{ alignItems: "center" }}>
+                <Image style={styles.qrCode} source={{ uri: this.state.qrCode }} />
+                <Text style={{ color: "#999" }}>扫描上面二维码，加我彩信</Text>
             </DialogContent>
         </Dialog>
     )
 
-    SexPoup = () => (
+    SexPopup = () => (
         <Dialog
             width={0.8}
-            dialogTitle={<DialogTitle title="性别"/>}
+            dialogTitle={<DialogTitle title="性别" />}
             dialogAnimation={new FadeAnimation()}
-            visible={this.state.SexPoup}
-            onTouchOutside={() => this.setState({SexPoup: false})}
+            visible={this.state.SexPopup}
+            onTouchOutside={() => this.setState({ SexPopup: false })}
         >
-            <DialogContent style={{alignItems: "center"}}>
+            <DialogContent style={{ alignItems: "center" }}>
                 <TouchableHighlight
-                    style={{marginTop: 20}}
+                    style={{ marginTop: 20 }}
                     underlayColor="rgba(0,0,0,0.1)"
-                    onPress={this.dataRequest.bind(this, "confirm", {sex: "男"}, "SexPoup")}
+                    onPress={this.dataRequest.bind(this, "confirm", { sex: "男" }, "SexPopup")}
                 >
-                    <View style={styles.sexPoupBtn}>
+                    <View style={styles.sexPopupBtn}>
                         <Text style={styles.sexOption}>男</Text>
                         <View
-                            style={[styles.selectCotainer, {borderColor: this.state.sex == "男" ? "#2375F1" : "#999"}]}>
+                            style={[styles.selectCotainer, { borderColor: this.state.sex == "男" ? "#2375F1" : "#999" }]}>
                             {this.state.sex == "男" && <View style={styles.selected}></View>}
                         </View>
                     </View>
@@ -307,12 +371,12 @@ export default class Option extends React.Component {
                 <View style={styles.sexLine}></View>
                 <TouchableHighlight
                     underlayColor="rgba(0,0,0,0.1)"
-                    onPress={this.dataRequest.bind(this, "confirm", {sex: "女"}, "SexPoup")}
+                    onPress={this.dataRequest.bind(this, "confirm", { sex: "女" }, "SexPopup")}
                 >
-                    <View style={styles.sexPoupBtn}>
+                    <View style={styles.sexPopupBtn}>
                         <Text style={styles.sexOption}>女</Text>
                         <View
-                            style={[styles.selectCotainer, {borderColor: this.state.sex == "女" ? "#2375F1" : "#999"}]}>
+                            style={[styles.selectCotainer, { borderColor: this.state.sex == "女" ? "#2375F1" : "#999" }]}>
                             {this.state.sex == "女" && <View style={styles.selected}></View>}
                         </View>
                     </View>
@@ -321,17 +385,17 @@ export default class Option extends React.Component {
         </Dialog>
     )
 
-    AreaPoup = () => (
+    AreaPopup = () => (
         <Dialog
             width={0.8}
-            dialogTitle={<DialogTitle title="选择地区"/>}
-            dialogAnimation={new SlideAnimation({slideFrom: 'bottom'})}
-            visible={this.state.AreaPoup}
+            dialogTitle={<DialogTitle title="选择地区" />}
+            dialogAnimation={new SlideAnimation({ slideFrom: 'bottom' })}
+            visible={this.state.AreaPopup}
         >
-            <DialogContent style={{alignItems: "center"}}>
+            <DialogContent style={{ alignItems: "center" }}>
 
-                <View style={{height: 225, flexDirection: 'row'}}>
-                    <View style={{flex: 1}}>
+                <View style={{ height: 225, flexDirection: 'row' }}>
+                    <View style={{ flex: 1 }}>
                         <Picker
                             data={this.ChinaArea.Province}
                             ref={_Picker0 => this._Picker0 = _Picker0}
@@ -345,7 +409,7 @@ export default class Option extends React.Component {
                             }}
                         />
                     </View>
-                    <View style={{flex: 1}}>
+                    <View style={{ flex: 1 }}>
                         <Picker
                             data={this.ChinaArea.Province[0].City}
                             ref={_Picker1 => this._Picker1 = _Picker1}
@@ -357,7 +421,7 @@ export default class Option extends React.Component {
                             }}
                         />
                     </View>
-                    <View style={{flex: 1}}>
+                    <View style={{ flex: 1 }}>
                         <Picker
                             data={this.ChinaArea.Province[0].City[0].Area}
                             ref={_Picker2 => this._Picker2 = _Picker2}
@@ -371,12 +435,12 @@ export default class Option extends React.Component {
             <DialogFooter>
                 <DialogButton
                     text="取消"
-                    textStyle={{fontSize: 14}}
-                    onPress={this.cancle.bind(this, "AreaPoup")}
+                    textStyle={{ fontSize: 14 }}
+                    onPress={this.cancle.bind(this, "AreaPopup")}
                 />
                 <DialogButton
                     text="确认"
-                    textStyle={{fontSize: 14}}
+                    textStyle={{ fontSize: 14 }}
                     onPress={() => {
                         let address = String();
                         if (this.ChinaArea.Province[this.rowIndex0].City[this.rowIndex1].Area[this.rowIndex2]) {
@@ -384,55 +448,105 @@ export default class Option extends React.Component {
                         } else {
                             address = `${this.ChinaArea.Province[this.rowIndex0].name} ${this.ChinaArea.Province[this.rowIndex0].City[this.rowIndex1].name}`;
                         }
-                        this.dataRequest("confirm", {city: address}, 'AreaPoup')
+                        this.dataRequest("confirm", { city: address }, 'AreaPopup')
                     }}
                 />
             </DialogFooter>
         </Dialog>
     )
 
-    TiesNumberPoup = () => (
+
+    FeedbackPopup = () => (
         <Dialog
             width={0.8}
-            dialogTitle={<DialogTitle title="绑定手机号"/>}
-            dialogAnimation={new SlideAnimation({slideFrom: 'right'})}
-            visible={this.state.TiesNumberPoup}
+            dialogTitle={<DialogTitle title="帮助与反馈" />}
+            dialogAnimation={new SlideAnimation({ slideFrom: 'top' })}
+            visible={this.state.FeedbackPopup}
         >
-            <DialogContent style={{/*  height: 60, */backgroundColor: "#f5f5f5", alignItems: "center"}}>
+            <DialogContent>
                 <TextInput
-                    style={{width: "100%", textAlign: "center", backgroundColor: "#fff"}}
-                    placeholder="请输入手机号码"
-                    maxLength={27}
+                    style={{ marginTop: 22 }}
+                    placeholder="请写下您的反馈信息…"
+                    maxLength={99}
                     autoFocus={true}
-                    onChangeText={nickname => this.setState({nickname: nickname})}
-                    value={this.state.nickname}
+                    multiline={true}
+                    onChangeText={feedback => this.setState({ feedback: feedback })}
+                    value={this.state.feedback}
                 />
-                <TextInput
-                    style={{width: "100%", textAlign: "center", backgroundColor: "#fff"}}
-                    placeholder="请输入手机号码"
-                    maxLength={27}
-                    autoFocus={true}
-                    onChangeText={nickname => this.setState({nickname: nickname})}
-                    value={this.state.nickname}
-                />
-
             </DialogContent>
 
             <DialogFooter>
                 <DialogButton
                     text="取消"
-                    textStyle={{fontSize: 14}}
-                    onPress={this.cancle.bind(this, "TiesNumberPoup")}
+                    textStyle={{ fontSize: 14 }}
+                    onPress={this.cancle.bind(this, "FeedbackPopup")}
                 />
                 <DialogButton
-                    text="确认"
-                    textStyle={{fontSize: 14}}
-                    // onPress={this.dataRequest.bind(this, 'TiesNumberPoup')}
+                    text="提交"
+                    textStyle={{ fontSize: 14 }}
+                // onPress={this.dataRequest.bind(this, "confirm", { username: this.state.nickname }, 'FeedbackPopup')}
                 />
             </DialogFooter>
         </Dialog>
-
     )
+
+    TiesNumberPopup = () => {
+        let isPhoneNumber = /^1[3456789]\d{9}$/.test(this.state.phoneNumber);
+        return (
+            <Dialog
+                width={0.8}
+                dialogTitle={<DialogTitle title="绑定手机号" />}
+                dialogAnimation={new SlideAnimation({ slideFrom: 'right' })}
+                visible={this.state.TiesNumberPopup}
+            >
+                <DialogContent style={{ backgroundColor: "#f5f5f5", alignItems: "center" }}>
+                    <View style={[styles.TiesNumberPopup_inputContainer]}>
+                        <TextInput
+                            style={{ flex: 1 }}
+                            placeholder="新的手机号码"
+                            maxLength={11}
+                            autoFocus={true}
+                            keyboardType="numeric"
+                            onChangeText={phoneNumber => this.setState({ phoneNumber: phoneNumber })}
+                            value={this.state.phoneNumber}
+                        />
+                        <TouchableOpacity
+                            onPress={() => this.countdown()}
+                            disabled={!this.state.countdownState || !isPhoneNumber}
+                        >
+                            <Text style={[styles.verfiyCodeBtn, { opacity: (this.state.countdownState && isPhoneNumber) ? 1 : 0.6, }]}>{this.state.countdownText}</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <View style={[styles.TiesNumberPopup_inputContainer]}>
+                        <TextInput
+                            style={{ flex: 1, }}
+                            placeholder="请输入验证码"
+                            keyboardType="numeric"
+                            maxLength={6}
+                            onChangeText={verfiyCode => this.setState({ verfiyCode: verfiyCode })}
+                            value={this.state.verfiyCode}
+                        />
+                    </View>
+
+                </DialogContent>
+
+                <DialogFooter>
+                    <DialogButton
+                        text="取消"
+                        textStyle={{ fontSize: 14 }}
+                        onPress={this.cancle.bind(this, "TiesNumberPopup")}
+                    />
+                    <DialogButton
+                        text="确认"
+                        textStyle={{ fontSize: 14 }}
+                        onPress={() => ((this.state.phoneNumber && this.state.verfiyCode) && this.dataRequest("phoneSubmit", null, "TiesNumberPopup"))}
+                    />
+                </DialogFooter>
+            </Dialog>
+
+        )
+    }
 
     render() {
         /**
@@ -452,18 +566,18 @@ export default class Option extends React.Component {
                         <TouchableHighlight
                             underlayColor="rgba(0,0,0,0.1)"
                             key={index}
-                            style={[styles.optionContainer, {marginTop: item.mt}]}
+                            style={[styles.optionContainer, { marginTop: item.mt }]}
                             onPress={item.method}
                         >
                             <View style={styles.optionMain}>
-                                <Text style={[styles.optionText, item.isCenter && {textAlign: "center"}]}>
+                                <Text style={[styles.optionText, item.isCenter && { textAlign: "center" }]}>
                                     {item.text}
                                 </Text>
                                 {item.image &&
-                                <Image
-                                    style={!item.image.indexOf('http') ? styles.rightImage : styles.rightImage_icon}
-                                    source={!item.image.indexOf('http') ? {uri: item.image} : this.icon[item.image]}
-                                />
+                                    <Image
+                                        style={!item.image.indexOf('http') ? styles.rightImage : styles.rightImage_icon}
+                                        source={!item.image.indexOf('http') ? { uri: item.image } : this.icon[item.image]}
+                                    />
                                 }
                                 <Text style={[
                                     styles.optionDescribe,
@@ -475,19 +589,20 @@ export default class Option extends React.Component {
                                     {item.rightText}
                                 </Text>
                                 <Image
-                                    style={[styles.iconNext, {display: !item.disIconNext ? 'flex' : 'none'}]}
+                                    style={[styles.iconNext, { display: !item.disIconNext ? 'flex' : 'none' }]}
                                     source={require('../../assets/images/icon-next.png')}
                                 />
                             </View>
                         </TouchableHighlight>
                     ))
                 }
-                {this.ChangeHeaderPoup()}
-                <this.NickNamePoup/>
-                <this.QrCodePoup/>
-                <this.SexPoup/>
-                <this.AreaPoup/>
-                <this.TiesNumberPoup/>
+                {this.ChangeHeaderPopup()}
+                <this.NickNamePopup />
+                <this.QrCodePopup />
+                <this.SexPopup />
+                <this.AreaPopup />
+                <this.TiesNumberPopup />
+                <this.FeedbackPopup />
             </View>
         )
     }
@@ -543,7 +658,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: "#eee"
     },
-    sexPoupBtn: {
+    sexPopupBtn: {
         paddingVertical: 15,
         marginHorizontal: 10,
         width: 220,
@@ -583,5 +698,25 @@ const styles = StyleSheet.create({
         height: 1,
         width: '100%',
         backgroundColor: '#ddd'
+    },
+    TiesNumberPopup_inputContainer: {
+        width: "100%",
+        borderRadius: 9,
+        paddingHorizontal: 18,
+        justifyContent: "space-between",
+        height: 66,
+        backgroundColor: "#fff",
+        flexDirection: "row",
+        alignItems: "center",
+        marginTop: 23
+    },
+    verfiyCodeBtn: {
+        color: "#333",
+        fontSize: 12,
+        borderColor: "#bbb",
+        borderWidth: 1,
+        lineHeight: 26,
+        borderRadius: 5,
+        paddingHorizontal: 10
     }
 });

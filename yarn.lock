@@ -5338,6 +5338,13 @@ react-native-swipeout@2.3.6:
     prop-types "^15.5.10"
     react-tween-state "^0.1.5"
 
+react-native-switchbutton@^0.4.6:
+  version "0.4.6"
+  resolved "https://registry.npm.taobao.org/react-native-switchbutton/download/react-native-switchbutton-0.4.6.tgz#d990bf83bbf8064eca72b5fa2a66b0ffd0e2e9d3"
+  integrity sha1-2ZC/g7v4Bk7KcrX6Kmaw/9Di6dM=
+  dependencies:
+    prop-types "^15.6.1"
+
 react-native-tab-view@^1.2.0, react-native-tab-view@^1.4.1:
   version "1.4.1"
   resolved "https://registry.npm.taobao.org/react-native-tab-view/download/react-native-tab-view-1.4.1.tgz#f113cd87485808f0c991abec937f70fa380478b9"
