@@ -26,7 +26,7 @@ import QrScand from './common/qrScand';
 import SendRedBagsPage from './pages/RedBags/SendRedBagsPage';
 import RedBagsDetailPage from './pages/RedBags/RedBagsDetailPage';
 import SearchPage from './pages/SearchPage';
-import {CONNECT_SUCCESS_RONGCLOUD} from '../static'
+import { CONNECT_SUCCESS_RONGCLOUD } from '../static'
 
 global.formDataObject = obj => {
     let formData = new FormData();
@@ -140,7 +140,7 @@ global.dataGroup = initData => {
     });
     return group;
 };
-global[CONNECT_SUCCESS_RONGCLOUD]=false;
+global[CONNECT_SUCCESS_RONGCLOUD] = false;
 
 class AuthLoadingScreen extends React.Component {
     constructor() {
@@ -158,8 +158,8 @@ class AuthLoadingScreen extends React.Component {
     }
 
     onSuccess(userId) {
-        global[CONNECT_SUCCESS_RONGCLOUD]=true;
-        DeviceEventEmitter.emit(CONNECT_SUCCESS_RONGCLOUD, {suc:true,userId});
+        global[CONNECT_SUCCESS_RONGCLOUD] = true;
+        DeviceEventEmitter.emit(CONNECT_SUCCESS_RONGCLOUD, { suc: true, userId });
         console.log("连接成功：" + userId);
     }
 
@@ -220,19 +220,19 @@ const AppStack = createStackNavigator({
     Search: SearchPage,
     Test: Test
 }, {
-        headerMode: 'none',
-        // initialRouteName: 'Wallet',
-        //  headerLayoutPreset: 'center',
-    });
+    headerMode: 'none',
+    // initialRouteName: 'Wallet',
+    //  headerLayoutPreset: 'center',
+});
 
 const AuthStack = createStackNavigator(
     {
         LoginRigister: LoginRigisterScreen,
         ForgetPwd: ForgetPwdScreen
     }, {
-        headerMode: 'none',
-        // initialRouteName: 'ForgetPwd'
-    });
+    headerMode: 'none',
+    // initialRouteName: 'ForgetPwd'
+});
 
 export default createAppContainer(createSwitchNavigator(
     {

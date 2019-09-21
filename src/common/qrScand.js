@@ -134,7 +134,6 @@ class qrScand extends Component {
                 show: false
             });
             callBack && callBack(e);
-            this.props.navigation.goBack();
         } else {
             alert('扫描失败,对准二维码继续扫描')
         }

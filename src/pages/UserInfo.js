@@ -1,5 +1,5 @@
 import React from 'react';
-import { YellowBox, StatusBar, View, Image, Text, TextInput, StyleSheet, ImageBackground, Dimensions, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { YellowBox, StatusBar, Platform, View, Image, Text, BackHandler, TextInput, StyleSheet, ImageBackground, Dimensions, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-community/async-storage';
 import TopBar from './components/TopBar';
@@ -17,6 +17,12 @@ class UserInfo extends React.Component {
             'Warning: componentWillMount is deprecated',
             'Warning: componentWillReceiveProps is deprecated',
         ]);
+        Platform.OS == "android" && BackHandler.addEventListener('hardwareBackPress', this.onBackButtonPressAndroid);
+    }
+
+    onBackButtonPressAndroid = () => {
+        this.props.navigation.navigate("AuthLoading")
+        return true; //返回true, 不执行系统操作。
     }
 
     componentWillMount() {
@@ -79,7 +85,7 @@ class UserInfo extends React.Component {
                     this.state.userInfo.is_friend ?
                         <TopBar
                             leftIcon="icon_back_white"
-                            leftPress={() => this.props.navigation.goBack()}
+                            leftPress={() => this.props.navigation.navigate("AuthLoading")}
                             rightIcon="icon_option"
                             rightBtnStyle={styles.rightBtnStyle}
                             rightPress={() => { this.props.navigation.navigate('DataSetting', this.userInfo) }}
@@ -87,7 +93,7 @@ class UserInfo extends React.Component {
                         :
                         <TopBar
                             leftIcon="icon_back_white"
-                            leftPress={() => this.props.navigation.goBack()}
+                            leftPress={() => this.props.navigation.navigate("AuthLoading")}
                             rightIcon="icon_option"
                             rightBtnStyle={styles.rightBtnStyle}
                             rightPress={() => alert("添加好友过后才能点哦～")}
