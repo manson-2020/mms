@@ -19,6 +19,8 @@ import GroupInfoScreen from './pages/GroupInfo';
 import FriendListScreen from './pages/FriendList';
 import WalletScreen from './pages/Wallet';
 import BudgetScreen from './pages/Budget';
+import AboutScreen from './pages/About';
+import NotifyScreen from './pages/Notify';
 import Test from './pages/Test';
 import QrScand from './common/qrScand';
 import SendRedBagsPage from './pages/RedBags/SendRedBagsPage';
@@ -210,6 +212,8 @@ const AppStack = createStackNavigator({
     FriendList: FriendListScreen,
     Wallet: WalletScreen,
     Budget: BudgetScreen,
+    About: AboutScreen,
+    Notify: NotifyScreen,
     QrScand: QrScand,
     SendRedBags: SendRedBagsPage,
     RedBagsDetail: RedBagsDetailPage,
