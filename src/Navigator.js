@@ -147,8 +147,8 @@ class AuthLoadingScreen extends React.Component {
         super();
         init(Config.AppKey);
         this._bootstrapAsync();
-        //监听接收消息
 
+        //监听接收消息
         addReceiveMessageListener(result => {
             //取反表示群聊
             if (result.message.targetId.indexOf("group")) {
@@ -221,7 +221,7 @@ const AppStack = createStackNavigator({
     Test: Test
 }, {
         headerMode: 'none',
-        // initialRouteName: 'Setting',
+        // initialRouteName: 'Wallet',
         //  headerLayoutPreset: 'center',
     });
 

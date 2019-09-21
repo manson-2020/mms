@@ -10,8 +10,8 @@ class Setting extends React.Component {
         super();
         this.option = [
             { text: "绑定手机号", mt: 15 },
-            { text: "新消息通知", mt: 15, method: () => this.props.navigation.navigate("Notify") },
-            { text: "黑名单", method: () => { } },
+            // { text: "新消息通知", mt: 15, method: () => this.props.navigation.navigate("Notify") },
+            // { text: "黑名单", method: () => { } },
             { text: "帮助与反馈" },
             { text: "关于彩信", method: () => this.props.navigation.navigate("About") },
             {
@@ -22,7 +22,7 @@ class Setting extends React.Component {
             {
                 text: "退出登录", disIconNext: true, isCenter: true, mt: 15,
                 method: () => {
-                    AsyncStorage.removeItem('token');
+                    AsyncStorage.removeItem('token');   
                     disconnect(false);
                     this.props.navigation.navigate('AuthLoading');
                 }

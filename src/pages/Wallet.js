@@ -2,31 +2,48 @@ import React from 'react';
 import { View, Text, StyleSheet, ImageBackground, Image, TouchableOpacity, StatusBar } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import TopBar from './components/TopBar';
+import InputPayPasswordModal from '../common/InputPayPasswordModal'
 
 class Wallet extends React.Component {
     constructor() {
         super();
         this.state = {
             money: "0.00",
+            showPayPassword: false
         };
     }
 
     componentWillMount() {
-        this.dataRequest();
+        this.dataRequest("getMoney");
     }
 
-    dataRequest() {
+    dataRequest(params, paramsBody) {
         let async_storage = Object();
         AsyncStorage.multiGet(["token", "userid"]).then(value => {
             value.map(item => async_storage[item[0]] = item[1]);
-            apiRequest("/index/userinfo/get_money", {
-                method: 'post',
-                mode: "cors",
-                body: formDataObject({
-                    token: async_storage.token
-                })
-            }).then(req => this.setState({ money: req.res.change }))
+            if (params == "getMoney") {
+                apiRequest("/index/userinfo/get_money", {
+                    method: 'post',
+                    mode: "cors",
+                    body: formDataObject({
+                        token: async_storage.token
+                    })
+                }).then(req => this.setState({ money: req.res.change }));
+            } else {
+                apiRequest("/index/userinfo/set_paypwd", {
+                    method: 'post',
+                    mode: "cors",
+                    body: formDataObject({
+                        token: async_storage.token,
+                        pay_pwd: paramsBody
+                    })
+                }).then(req => console.warn(req));
+            }
         })
+    }
+
+    closePayPassword() {
+        this.setState({ showPayPassword: false })
     }
 
     render() {
@@ -50,21 +67,27 @@ class Wallet extends React.Component {
                         </ImageBackground>
                     </View>
                     <View style={[styles.optionContainer, styles.bg_white]}>
-                        <TouchableOpacity>
+                        <TouchableOpacity onPress={() => this.setState({ showPayPassword: true })}>
                             <View style={styles.option}>
-                                <Text style={styles.optionText}>修改支付密码</Text>
+                                <Text style={styles.optionText}>设置支付密码</Text>
                                 <Image style={styles.iconNext} source={require("../assets/images/icon-next.png")} />
                             </View>
                         </TouchableOpacity>
                         <View style={styles.line} />
-                        <TouchableOpacity>
-                            <View style={styles.option}>
-                                <Text style={styles.optionText}>忘记支付密码</Text>
-                                <Image style={styles.iconNext} source={require("../assets/images/icon-next.png")} />
-                            </View>
-                        </TouchableOpacity>
                     </View>
                 </View>
+                {
+                    this.state.showPayPassword &&
+                    <InputPayPasswordModal
+                        ref={ref => this.inputPayPassword = ref}
+                        rm_money="设置支付密码"
+                        tips="输入新的支付密码"
+                        notPay={true}
+                        close={() => this.closePayPassword()}
+                        callBack={pay_pwd => this.dataRequest(null, pay_pwd)}
+                    />
+                }
+
             </View >
         );
     }
