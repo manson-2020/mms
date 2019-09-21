@@ -5,8 +5,6 @@ import EvilIcons from 'react-native-vector-icons/EvilIcons'
 import Entypo from 'react-native-vector-icons/Entypo'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import propTypes from 'prop-types'
-import AsyncStorage from '@react-native-community/async-storage';
-import Utils from '../../util/Utils'
 import { KEYBOARAD_NUB, PAY_PASSWORD_LEN } from '../../static'
 
 const { width, height } = Dimensions.get('window');
