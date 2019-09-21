@@ -6,15 +6,13 @@ import {
     sendMediaMessage,
 } from "rongcloud-react-native-imlib";
 import {RNCamera} from 'react-native-camera';
-import Sound from "react-native-sound";
+
 
 /**
  * 基本的参数配置
  * @type {{cropping: boolean, width: number, height: number}}
  */
 const baseOptions = {
-    width: 300,
-    height: 400,
     compressImageMaxWidth: 300,
     compressImageMaxHeight: 400,
     compressImageQuality: 0.4,
@@ -91,6 +89,9 @@ export default class MediaUtils {
         send({conversationType, targetId, content},callback)
     }
 
+    /**
+     * @param parmas
+     */
     static sendMediaMessage(parmas) {
        this.getSendParams(parmas,(mes,callback)=>{
            sendMediaMessage(mes, callback);

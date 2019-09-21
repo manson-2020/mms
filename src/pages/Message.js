@@ -14,13 +14,21 @@ import {
     Dimensions,
     TouchableOpacity,
     RefreshControl,
+    TouchableHighlight
 } from 'react-native';
-import {getConversation, ConversationType, getConversationList} from "rongcloud-react-native-imlib";
+import {
+    getConversation,
+    ConversationType,
+    removeConversation,
+    getConversationList,
+    addReceiveMessageListener
+} from "rongcloud-react-native-imlib";
 import AsyncStorage from '@react-native-community/async-storage';
 import moment from 'moment';
 import TopBar from './components/TopBar';
 import {CONNECT_SUCCESS_RONGCLOUD, MESSAGE_CHANGE} from '../../static'
 import Utils from "../../util/Utils";
+import TipModel from '../common/TipModel'
 
 class Message extends React.Component {
 
@@ -35,8 +43,12 @@ class Message extends React.Component {
             flatlistHeight: 0,
             angle: -45,
             searchValue: false,
-            data: []
+            data: [],
+            nativeEvent: null,
+            showTipModal: false,
+            isActive:false
         };
+        this.index=-1;
         this.MaxHeight = Dimensions.get('window').height;
         this.MaxWidth = Dimensions.get('window').width;
     }
@@ -61,9 +73,19 @@ class Message extends React.Component {
         /**
          * 监听有消息发送，有消息改变，刷新会话列表
          */
-        this.mesageChanged=DeviceEventEmitter.addListener(MESSAGE_CHANGE,(data)=>{
-            if(data['mesChanged']){
+        this.mesageChanged = DeviceEventEmitter.addListener(MESSAGE_CHANGE, (data) => {
+            if (data['mesChanged']) {
+                console.log('mesChanged',data)
                 this.dataRequest()
+            }
+        });
+        /**
+         * 监听接受消息
+         * @type {import("react-native").EmitterSubscription}
+         */
+        this.receiveMes = addReceiveMessageListener((mes) => {
+            if (mes) {
+                this.dataRequest();
             }
         })
     }
@@ -71,6 +93,7 @@ class Message extends React.Component {
     componentWillUnmount() {
         this.suclistener && this.suclistener.remove();
         this.mesageChanged && this.mesageChanged.remove();
+        this.receiveMes = null;
     }
 
     /**
@@ -163,6 +186,8 @@ class Message extends React.Component {
                     return '[文件]'
                 }
             }
+        }else if(objectName === "RC:ImgMsg"){
+            return '[图片]'
         }
     }
 
@@ -178,7 +203,16 @@ class Message extends React.Component {
             const extraData = JSON.parse(extra);
             const {info, selfInfo} = extraData;
             return (
-                <TouchableOpacity onPress={() => this.goPage(info)}>
+                <TouchableOpacity
+                    style={{backgroundColor:this.state.isActive ? '#ddd' :'#fff'}}
+                    onLongPress={(event) => {
+                        const {nativeEvent} = event;
+                        this.setState({nativeEvent,isActive:true}, () => {
+                            this.index=index;
+                            this.setState({showTipModal:true})
+                        })
+                    }}
+                    onPress={() => this.goPage(info)}>
                     <View style={styles.container}>
                         <View style={styles.leftView}>
                             {/* <View style={styles.marker}></View> */}
@@ -217,13 +251,37 @@ class Message extends React.Component {
              * 接收扫描结果
              * @param res
              */
-            callBack: (res) => {
-                alert(JSON.stringify(res))
+            callBack:async (res) => {
+                console.log(res);
+
             }
         })
     }
 
+    /**
+     * 选择tip相应对应的操作
+     * @param key
+     */
+    selectTipItem(key){
+        this.setState({showTipModal:false,isActive:false});
+        switch (key) {
+            case 'del':
+                this._removeConversation();
+                break
+        }
+    }
+   async _removeConversation(){
+        const {conversationType,targetId}=this.state.data[this.index];
+        const res=await removeConversation(conversationType, targetId);
+        this.setState((pre)=>{
+            const {data}=pre;
+            data.splice(this.index,1);
+            return {data}
+        })
+    }
+
     render() {
+        const {nativeEvent, showTipModal} = this.state;
         return (
             <View style={{flex: 1}}>
                 <StatusBar translucent={true} backgroundColor="transparent" barStyle='dark-content'/>
@@ -299,6 +357,13 @@ class Message extends React.Component {
                         </View>
                     )}
                 />
+                {showTipModal ? <TipModel
+                                    ref={(ref) => this.tipModal = ref}
+                                    hide={()=>this.setState({showTipModal:false,isActive:false})}
+                                    callBack={(key)=>this.selectTipItem(key)}
+                                    nativeEvent={nativeEvent}/>
+                            : null
+                }
             </View>
         );
     }

@@ -23,10 +23,10 @@ export default class SearchPage extends Component {
     }
     async onSearch(searchValue){
         this.setState({searchValue});
-        // const conversationTypes = [ConversationType.PRIVATE,ConversationType.GROUP];
-        // const objectNames = [ObjectName.Text, ObjectName.Image];
-        // const conversations = await searchConversations(searchValue,conversationTypes,objectNames);
-        // console.log(conversations)
+        const conversationTypes = [ConversationType.PRIVATE,ConversationType.GROUP];
+        const objectNames = [ObjectName.Text, ObjectName.Image];
+        const conversations = await searchConversations('zhs',['1'],objectNames);
+        console.log(conversations)
     }
     render() {
         const {searchValue} = this.state;
