@@ -39,7 +39,8 @@ import ViewerImageModal from '../common/ViewerImageModal'
 import GetRedBags from '../common/GetRedBags'
 import {MESSAGE_CHANGE} from '../../static'
 
-const {width}=Dimensions.get('window');
+const {width} = Dimensions.get('window');
+
 // 18981796331
 
 
@@ -48,9 +49,10 @@ class ChatBox extends React.Component {
         super(props);
         this.imageUrls = [];
         this.info = props.navigation.state.params;
+        console.log('this.info', this.info);
         this.targetId = this.info.userid || this.info.group_id;
         this.isGroup = /group/.test(this.targetId);
-        this.conversationType = this.isGroup ? ConversationType.GROUP  : ConversationType.PRIVATE
+        this.conversationType = this.isGroup ? ConversationType.GROUP : ConversationType.PRIVATE
         this.state = {
             animatedValue: new Animated.Value(0),
             isShow: false,
@@ -116,8 +118,8 @@ class ChatBox extends React.Component {
                                 extra: JSON.stringify({
                                     type: 'redBags',
                                     hb_orderid,
-                                    info:this.info,
-                                    selfInfo:this.isGroup ? this.state.selfInfo : null
+                                    info: this.info,
+                                    selfInfo: this.isGroup ? this.state.selfInfo : null
                                 }),
                             };
                             MediaUtils.sendMessage({
@@ -134,8 +136,8 @@ class ChatBox extends React.Component {
                                         msgData: [nmes, ...pre.msgData],
                                     }));
                                 },
-                                success:()=>{
-                                    DeviceEventEmitter.emit(MESSAGE_CHANGE,{mesChanged:true})
+                                success: () => {
+                                    DeviceEventEmitter.emit(MESSAGE_CHANGE, {mesChanged: true})
                                 }
                             })
                         }
@@ -230,7 +232,7 @@ class ChatBox extends React.Component {
                                     const {objectName, remote, local, thumbnail} = item['content'];
                                     if (objectName === 'RC:ImgMsg') {
                                         imageUrls.push({
-                                            url: local || thumbnail || remote, freeHeight: true
+                                            url: remote || thumbnail, freeHeight: true
                                         })
                                     }
 
@@ -249,7 +251,7 @@ class ChatBox extends React.Component {
                     })
                 }).then(req => {
                     console.log('userInfo', req.res)
-                    this.setState({userInfo: req.res},()=>{
+                    this.setState({userInfo: req.res}, () => {
                         getHistoryMessages(ConversationType.PRIVATE, this.targetId, [ObjectName.Text, ObjectName.Image, ObjectName.File], 0, 30)
                             .then(async result => {
                                 console.log(result)
@@ -264,7 +266,7 @@ class ChatBox extends React.Component {
                                     const {objectName, remote, local, thumbnail} = item['content'];
                                     if (objectName === 'RC:ImgMsg') {
                                         imageUrls.push({
-                                            url: local || thumbnail || remote, freeHeight: true
+                                            url: remote || thumbnail, freeHeight: true
                                         })
                                     }
 
@@ -291,7 +293,7 @@ class ChatBox extends React.Component {
     }
 
     componentWillUnmount() {
-        this.listener = null;
+        this.listener.remove();
     }
 
     setStatusRedBags(result, token) {
@@ -453,6 +455,12 @@ class ChatBox extends React.Component {
     }
 
     showMore() {
+        if (this.msgInput.isFocused) {
+            Keyboard.dismiss();
+        }
+        if(this.state.showVoiceBtn){
+            this.setState({showVoiceBtn:false})
+        }
         this.setState({
             isShow: !this.state.isShow
         });
@@ -473,8 +481,8 @@ class ChatBox extends React.Component {
                     content: this.state.msgText.replace(/\n/g, ""),
                     extra: JSON.stringify({
                         type: 'text',
-                        info:this.info,
-                        selfInfo:this.isGroup ? this.state.selfInfo : null
+                        info: this.info,
+                        selfInfo: this.isGroup ? this.state.selfInfo : null
                     })
                 }
             };
@@ -484,7 +492,7 @@ class ChatBox extends React.Component {
                         msgData: [message, ...this.state.msgData],
                         msgText: ''
                     });
-                    DeviceEventEmitter.emit(MESSAGE_CHANGE,{mesChanged:true})
+                    DeviceEventEmitter.emit(MESSAGE_CHANGE, {mesChanged: true})
                 },
                 error: errorCode => {
                     console.warn("发送失败：" + errorCode);
@@ -520,7 +528,7 @@ class ChatBox extends React.Component {
                                 type: 'video',
                                 path: thumbnailPpath,
                                 info: this.info,
-                                selfInfo:this.isGroup ? this.state.selfInfo : null
+                                selfInfo: this.isGroup ? this.state.selfInfo : null
                             })
                         }
                     } catch (e) {
@@ -534,7 +542,7 @@ class ChatBox extends React.Component {
                         extra: JSON.stringify({
                             type: 'image',
                             info: this.info,
-                            selfInfo:this.isGroup ? this.state.selfInfo : null
+                            selfInfo: this.isGroup ? this.state.selfInfo : null
                         })
                     };
                 }
@@ -560,7 +568,7 @@ class ChatBox extends React.Component {
                         });
                     },
                     success: (messageId, itemMes) => {
-                        DeviceEventEmitter.emit(MESSAGE_CHANGE,{mesChanged:true})
+                        DeviceEventEmitter.emit(MESSAGE_CHANGE, {mesChanged: true})
                     }
                 })
             });
@@ -644,7 +652,7 @@ class ChatBox extends React.Component {
                     </View>
                     <Text style={{paddingLeft: 15}}>彩信红包</Text>
                 </TouchableOpacity>
-            }else {
+            } else {
                 return <Text style={[styles.textMes, {color: isSelf ? '#fff' : '#333'}]}>
                     {content}
                 </Text>;
@@ -695,7 +703,7 @@ class ChatBox extends React.Component {
                         activeposter: extra
                     })} style={styles.videoWrap}>
                         <Image style={{width: '100%', height: '100%',}}
-                               source={{uri:extradata['path']}}/>
+                               source={{uri: extradata['path']}}/>
                         <View style={styles.playBtnWrap}>
                             <Image style={{width: 40, height: 40,}} source={require('../assets/images/play-btn.png')}/>
                         </View>
@@ -797,8 +805,8 @@ class ChatBox extends React.Component {
                         path: thumbnailPpath,
                         type: 'video',
                         localPath: thumbnail.path,
-                        info:this.info,
-                        selfInfo:this.isGroup ? this.state.selfInfo : null
+                        info: this.info,
+                        selfInfo: this.isGroup ? this.state.selfInfo : null
                     })
                 }
             } catch (e) {
@@ -810,8 +818,8 @@ class ChatBox extends React.Component {
                 local: uri,
                 extra: JSON.stringify({
                     type: 'image',
-                    info:this.info,
-                    selfInfo:this.isGroup ? this.state.selfInfo : null
+                    info: this.info,
+                    selfInfo: this.isGroup ? this.state.selfInfo : null
                 })
             }
         }
@@ -837,7 +845,7 @@ class ChatBox extends React.Component {
                 }
             },
             success: (messageId, itemMes) => {
-                DeviceEventEmitter.emit(MESSAGE_CHANGE,{mesChanged:true})
+                DeviceEventEmitter.emit(MESSAGE_CHANGE, {mesChanged: true})
             }
         })
     }
@@ -847,8 +855,15 @@ class ChatBox extends React.Component {
      */
     toggleVoiceBtn() {
         this.setState((pre) => {
+            if (pre.isShow) {
+                Animated.timing(this.state.animatedValue, {toValue: 0, duration: 0,}).start();
+                return {
+                    showVoiceBtn: !pre.showVoiceBtn,
+                    isShow: false,
+                }
+            }
             return {
-                showVoiceBtn: !pre.showVoiceBtn
+                showVoiceBtn: !pre.showVoiceBtn,
             }
         })
     }
@@ -865,8 +880,8 @@ class ChatBox extends React.Component {
             extra: JSON.stringify({
                 duration,
                 type: 'voice',
-                info:this.info,
-                selfInfo:this.isGroup ? this.state.selfInfo : null
+                info: this.info,
+                selfInfo: this.isGroup ? this.state.selfInfo : null
             })
         };
         MediaUtils.sendMediaMessage({
@@ -884,7 +899,7 @@ class ChatBox extends React.Component {
                 }));
             },
             success: (messageId, itemMes) => {
-                DeviceEventEmitter.emit(MESSAGE_CHANGE,{mesChanged:true})
+                DeviceEventEmitter.emit(MESSAGE_CHANGE, {mesChanged: true})
             }
         })
     }
@@ -943,7 +958,7 @@ class ChatBox extends React.Component {
                             </View> : null
                             }
                             <TextInput
-                                ref="msgInput"
+                                ref={(ref) => this.msgInput = ref}
                                 onChangeText={(msgText) => this.setState({msgText})}
                                 blurOnSubmit={false}
                                 returnKeyType="send"
@@ -951,6 +966,17 @@ class ChatBox extends React.Component {
                                 autoCorrect={false}
                                 iosreturnKeyType="send"
                                 style={styles.barInput}
+                                onFocus={() => {
+                                    this.setState((pre) => {
+                                        if (pre.isShow) {
+                                            Animated.timing(this.state.animatedValue, {
+                                                toValue: 0,
+                                                duration: 0,
+                                            }).start();
+                                            return {isShow: false}
+                                        }
+                                    })
+                                }}
                                 multiline={true}
                                 value={this.state.msgText}
                             />

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, ActivityIndicator, StatusBar, DeviceEventEmitter } from 'react-native';
 import { createAppContainer, createStackNavigator, createSwitchNavigator } from 'react-navigation';
 import AsyncStorage from '@react-native-community/async-storage';
+import SplashScreen from 'react-native-splash-screen'
 import { init, connect, addReceiveMessageListener } from "rongcloud-react-native-imlib";
 import pinyin from 'pinyin';
 import Config from "./config.json";
@@ -24,6 +25,7 @@ import QrScand from './common/qrScand';
 import SendRedBagsPage from './pages/RedBags/SendRedBagsPage';
 import RedBagsDetailPage from './pages/RedBags/RedBagsDetailPage';
 import SearchPage from './pages/SearchPage';
+
 import {CONNECT_SUCCESS_RONGCLOUD} from '../static'
 
 global.formDataObject = obj => {
@@ -143,11 +145,12 @@ global[CONNECT_SUCCESS_RONGCLOUD]=false;
 class AuthLoadingScreen extends React.Component {
     constructor() {
         super();
+        SplashScreen.hide();
         init(Config.AppKey);
         this._bootstrapAsync();
         //监听接收消息
 
-        addReceiveMessageListener(result => {
+        this.addListener=addReceiveMessageListener(result => {
             //取反表示群聊
             if (result.message.targetId.indexOf("group")) {
                 DeviceEventEmitter.emit('new Message', result);

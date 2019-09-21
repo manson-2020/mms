@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { disconnect } from "rongcloud-react-native-imlib";
 import TopBar from './components/TopBar';
 import Option from './components/Option';
+import {CONNECT_SUCCESS_RONGCLOUD} from "../../static";
 
 
 class Setting extends React.Component {
@@ -28,9 +29,10 @@ class Setting extends React.Component {
             },
             {
                 text: "退出登录", disIconNext: true, isCenter: true, mt: 15,
-                method: () => {
-                    AsyncStorage.removeItem('token');
-                    disconnect(false);
+                method:async () => {
+                    global[CONNECT_SUCCESS_RONGCLOUD]=false;
+                    await AsyncStorage.removeItem('token');
+                    await disconnect(false);
                     this.props.navigation.navigate('AuthLoading');
                 }
             },
