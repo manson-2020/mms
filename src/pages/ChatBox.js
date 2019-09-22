@@ -34,10 +34,11 @@ import {
     cancelSendMediaMessage,
 } from "rongcloud-react-native-imlib";
 import RNThumbnail from "react-native-thumbnail";
+import EventBus from 'react-native-event-bus'
 import VideoPlay from '../common/VideoPlay'
 import ViewerImageModal from '../common/ViewerImageModal'
 import GetRedBags from '../common/GetRedBags'
-import {MESSAGE_CHANGE} from '../../static'
+import {MESSAGE_CHANGE,CONVERSATION_REFRESH} from '../../static'
 
 const {width} = Dimensions.get('window');
 
@@ -49,7 +50,6 @@ class ChatBox extends React.Component {
         super(props);
         this.imageUrls = [];
         this.info = props.navigation.state.params;
-        console.log('this.info', this.info);
         this.targetId = this.info.userid || this.info.group_id;
         this.isGroup = /group/.test(this.targetId);
         this.conversationType = this.isGroup ? ConversationType.GROUP : ConversationType.PRIVATE
@@ -119,7 +119,7 @@ class ChatBox extends React.Component {
                                     type: 'redBags',
                                     hb_orderid,
                                     info: this.info,
-                                    selfInfo: this.isGroup ? this.state.selfInfo : null
+                                    selfInfo: this.state.selfInfo
                                 }),
                             };
                             MediaUtils.sendMessage({
@@ -137,7 +137,7 @@ class ChatBox extends React.Component {
                                     }));
                                 },
                                 success: () => {
-                                    DeviceEventEmitter.emit(MESSAGE_CHANGE, {mesChanged: true})
+                                    this.emtiEventMesChange()
                                 }
                             })
                         }
@@ -295,7 +295,9 @@ class ChatBox extends React.Component {
     componentWillUnmount() {
         this.listener.remove();
     }
-
+    emtiEventMesChange(){
+        global[CONVERSATION_REFRESH]=true
+    }
     setStatusRedBags(result, token) {
         const proArr = [];
         for (let i = 0; i < result.length; i++) {
@@ -482,7 +484,7 @@ class ChatBox extends React.Component {
                     extra: JSON.stringify({
                         type: 'text',
                         info: this.info,
-                        selfInfo: this.isGroup ? this.state.selfInfo : null
+                        selfInfo: this.state.selfInfo
                     })
                 }
             };
@@ -492,7 +494,7 @@ class ChatBox extends React.Component {
                         msgData: [message, ...this.state.msgData],
                         msgText: ''
                     });
-                    DeviceEventEmitter.emit(MESSAGE_CHANGE, {mesChanged: true})
+                    this.emtiEventMesChange()
                 },
                 error: errorCode => {
                     console.warn("发送失败：" + errorCode);
@@ -528,7 +530,7 @@ class ChatBox extends React.Component {
                                 type: 'video',
                                 path: thumbnailPpath,
                                 info: this.info,
-                                selfInfo: this.isGroup ? this.state.selfInfo : null
+                                selfInfo:  this.state.selfInfo
                             })
                         }
                     } catch (e) {
@@ -542,11 +544,11 @@ class ChatBox extends React.Component {
                         extra: JSON.stringify({
                             type: 'image',
                             info: this.info,
-                            selfInfo: this.isGroup ? this.state.selfInfo : null
+                            selfInfo:  this.state.selfInfo
                         })
                     };
                 }
-                
+
                 //发送
                 content && MediaUtils.sendMediaMessage({
                     content,
@@ -569,7 +571,7 @@ class ChatBox extends React.Component {
                         });
                     },
                     success: (messageId, itemMes) => {
-                        DeviceEventEmitter.emit(MESSAGE_CHANGE, {mesChanged: true})
+                        this.emtiEventMesChange()
                     }
                 })
             });
@@ -807,7 +809,7 @@ class ChatBox extends React.Component {
                         type: 'video',
                         localPath: thumbnail.path,
                         info: this.info,
-                        selfInfo: this.isGroup ? this.state.selfInfo : null
+                        selfInfo:  this.state.selfInfo
                     })
                 }
             } catch (e) {
@@ -820,7 +822,7 @@ class ChatBox extends React.Component {
                 extra: JSON.stringify({
                     type: 'image',
                     info: this.info,
-                    selfInfo: this.isGroup ? this.state.selfInfo : null
+                    selfInfo:  this.state.selfInfo
                 })
             }
         }
@@ -846,7 +848,7 @@ class ChatBox extends React.Component {
                 }
             },
             success: (messageId, itemMes) => {
-                DeviceEventEmitter.emit(MESSAGE_CHANGE, {mesChanged: true})
+                this.emtiEventMesChange()
             }
         })
     }
@@ -882,7 +884,7 @@ class ChatBox extends React.Component {
                 duration,
                 type: 'voice',
                 info: this.info,
-                selfInfo: this.isGroup ? this.state.selfInfo : null
+                selfInfo:  this.state.selfInfo
             })
         };
         MediaUtils.sendMediaMessage({
@@ -900,7 +902,7 @@ class ChatBox extends React.Component {
                 }));
             },
             success: (messageId, itemMes) => {
-                DeviceEventEmitter.emit(MESSAGE_CHANGE, {mesChanged: true})
+                this.emtiEventMesChange()
             }
         })
     }

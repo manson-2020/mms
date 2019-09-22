@@ -26,7 +26,7 @@ import SendRedBagsPage from './pages/RedBags/SendRedBagsPage';
 import RedBagsDetailPage from './pages/RedBags/RedBagsDetailPage';
 import SearchPage from './pages/SearchPage';
 
-import {CONNECT_SUCCESS_RONGCLOUD} from '../static'
+import {CONNECT_SUCCESS_RONGCLOUD,CONVERSATION_REFRESH} from '../static'
 
 global.formDataObject = obj => {
     let formData = new FormData();
@@ -36,7 +36,10 @@ global.formDataObject = obj => {
     return formData;
 }
 
-global.apiRequest = (url, params) => fetch(`${Config.apiAddress}${url}`, params).then(res => res.json());
+global.apiRequest = (url, params) => fetch(`${Config.apiAddress}${url}`, params).then(res =>  {
+    // console.log(res);
+    return res.json()
+});
 
 global.dataGroup = initData => {
     let transformName = [];
@@ -141,6 +144,8 @@ global.dataGroup = initData => {
     return group;
 };
 global[CONNECT_SUCCESS_RONGCLOUD]=false;
+global[CONNECT_SUCCESS_RONGCLOUD]=false;
+global[CONVERSATION_REFRESH]=false;
 
 class AuthLoadingScreen extends React.Component {
     constructor() {
