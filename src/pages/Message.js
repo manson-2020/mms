@@ -90,7 +90,7 @@ class Message extends React.Component {
         })
     }
 
-    componentDidMount(): void {
+    componentDidMount() {
         /**
          * 监听有消息发送，有消息改变，刷新会话列表
          */
@@ -583,7 +583,6 @@ const styles = StyleSheet.create({
     },
     optionMain: {
         height: 118,
-        width: 375,
         flexDirection: 'row',
         justifyContent: "space-around",
         alignItems: "center",

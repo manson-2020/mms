@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, Text, StyleSheet, StatusBar, ScrollView, Dimensions, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, StyleSheet, StatusBar, Platform, Dimensions, TouchableOpacity, Animated } from 'react-native';
 import Modal from 'react-native-modal'
 import EvilIcons from 'react-native-vector-icons/EvilIcons'
 import Entypo from 'react-native-vector-icons/Entypo'
@@ -21,14 +21,14 @@ export default class InputPayPasswordModal extends Component {
         super(props);
         this.minNoSelectIndex = 0;
         this.state = {
-            animatedValue: new Animated.Value(0),
+            animatedValue: new Animated.Value(-270),
             isVisible: true,
             pwdArr: [-1, -1, -1, -1, -1, -1],
         }
     }
 
-    componentDidMount(): void {
-        Animated.timing(this.state.animatedValue, { toValue: 250, duration: 500, }).start();
+    componentDidMount() {
+        Animated.timing(this.state.animatedValue, { toValue: 0, duration: 500, }).start();
     }
 
     /**
@@ -78,10 +78,10 @@ export default class InputPayPasswordModal extends Component {
                 isVisible={this.state.isVisible}
                 animationIn="fadeIn"
                 animationOut="fadeOut"
-                style={{ margin: 0, padding: 0, flex: 1, backgroundColor: 'rgba(0,0,0,.5)' }}
+                style={{ margin: 0, flex: 1 }}
                 onBackButtonPress={() => close()}>
+                {/* <StatusBar hidden={true} /> */}
                 <View style={{ alignItems: 'center', flex: 1, justifyContent: 'center' }}>
-                    <StatusBar hidden={true} />
                     <View style={styles.mainWrap}>
                         <TouchableOpacity onPress={() => close()} style={styles.closeWrap}>
                             <EvilIcons name={'close'} size={26} />
@@ -103,13 +103,13 @@ export default class InputPayPasswordModal extends Component {
                         </View>
                     </View>
                 </View>
-                <Animated.View style={[styles.keyboard, { height: this.state.animatedValue }]}>
-                    <TouchableOpacity style={{ alignItems: 'center' }}>
+                <Animated.View style={[styles.keyboard, { bottom: this.state.animatedValue }]}>
+                    {/* <TouchableOpacity style={{ alignItems: 'center', justifyContent: "center" }}>
                         <Ionicons name={'ios-arrow-down'} size={26} color={'#fff'} />
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                     <View style={styles.keyboardWrap}>
-                        {KEYBOARAD_NUB.map((item, index) => {
-                            return <TouchableOpacity
+                        {KEYBOARAD_NUB.map((item, index) => (
+                            <TouchableOpacity
                                 onPress={() => this.selectPasswordNub(item)}
                                 key={`keyboardNub${index}`}
                                 style={styles.keyboardNubWrap}>
@@ -117,10 +117,10 @@ export default class InputPayPasswordModal extends Component {
                                     <Text style={{ fontSize: 16 }}>{item}</Text>
                                 </View>
                             </TouchableOpacity>
-                        })}
+                        ))}
                     </View>
-                    <View style={[styles.keyboardWrap, { justifyContent: 'flex-end' }]}>
-                        <TouchableOpacity onPress={()=>this.selectPasswordNub(0)} style={styles.keyboardNubWrap}>
+                    <View style={[styles.keyboardWrap, { justifyContent: 'flex-end', paddingBottom: Platform.OS == "ios" ? 34 : 6 }]}>
+                        <TouchableOpacity onPress={() => this.selectPasswordNub(0)} style={styles.keyboardNubWrap}>
                             <View style={styles.keyboardNub}>
                                 <Text style={{ fontSize: 16 }}>0</Text>
                             </View>
@@ -191,9 +191,8 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     },
     keyboard: {
-        width: '100%',
+        paddingTop: 18,
         backgroundColor: '#c8ccd1',
-        height: 250,
         position: 'absolute',
         left: 0,
         bottom: 0
@@ -201,14 +200,12 @@ const styles = StyleSheet.create({
     keyboardWrap: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        paddingLeft: 6,
-        paddingRight: 5,
+        paddingHorizontal: 6
     },
     keyboardNubWrap: {
         width: '33.3%',
         height: 54,
-        paddingTop: 3,
-        paddingBottom: 3,
+        paddingVertical: 3,
         justifyContent: 'center',
         alignItems: 'center'
     },

@@ -69,9 +69,8 @@ class My extends React.Component {
     render() {
         return (
             <View style={styles.container}>
-                <StatusBar translucent={true} backgroundColor="transparent" barStyle='dark-content' />
                 <View style={styles.virtualPart}>
-                    <TopBar rightIcon="icon_scan" />
+                    <TopBar title="" />
                     <BlurView
                         style={[styles.absolute, styles.virtualPart, styles.z9]}
                         viewRef={this.state.viewRef}

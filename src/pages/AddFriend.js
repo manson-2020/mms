@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableWithoutFeedback, TouchableOpacity, StyleSheet, Image, TextInput, StatusBar } from 'react-native';
+import { View, Text, FlatList, TouchableWithoutFeedback, TouchableOpacity, StyleSheet, Image, TextInput, StatusBar } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import TopBar from './components/TopBar';
 
@@ -102,58 +102,65 @@ class AddFriend extends React.Component {
      * 扫描二维码添加朋友
      */
     openQrcode() {
-        const {navigation} = this.props;
-        navigation.navigate('QrScand',{
+        const { navigation } = this.props;
+        navigation.navigate('QrScand', {
             /**
              * 接收扫描结果
              * @param res
              */
-            callBack:(res)=>{
+            callBack: (res) => {
                 alert(JSON.stringify(res))
             }
         })
     }
+
+    newFriendList = (item, index) => (
+        <TouchableOpacity onPress={() => this.props.navigation.navigate("UserInfo", { userInfo: item })}>
+            <View style={styles.optionContainer}>
+                <View style={styles.optionWrapper}>
+                    <Image style={styles.avatar} source={{ uri: item.header_img }} />
+                    <Text style={styles.userName}>{item.username}</Text>
+                </View>
+                <TouchableOpacity
+                    onPress={this.dataRequest.bind(this, "agreeSubmit", item.userid)}
+                    disabled={!(item.status == 3)}
+                >
+                    <View style={{ backgroundColor: item.status == 3 ? "#196FF0" : "#fff", borderRadius: 6 }}>
+                        <Text style={{ marginHorizontal: 9, lineHeight: 30, textAlign: "center", color: item.status == 3 ? "#fff" : "#666" }}>
+                            {this.status[item.status]}
+                        </Text>
+                    </View>
+                </TouchableOpacity>
+            </View>
+            <View style={{ display: (this.state.newFriendList.length == index + 1) ? "none" : "flex", backgroundColor: "#fff" }}>
+                <View style={{ height: 1, backgroundColor: "#eee", marginHorizontal: 25 }}></View>
+            </View>
+        </TouchableOpacity>
+    )
     render() {
         return (
             <View style={{ flex: 1 }}>
                 <StatusBar translucent={true} backgroundColor="transparent" barStyle='dark-content' />
                 <TopBar title="新朋友"
-                        leftIcon="icon_back"
-                        rightIcon="icon_scan_black"
-                        rightPress={()=>this.openQrcode()}
-                        leftPress={() => {
-                            this.props.navigation.state.params.refresh();
-                            this.props.navigation.goBack();
-                        }} />
+                    leftIcon="icon_back"
+                    rightIcon="icon_scan_black"
+                    rightPress={() => this.openQrcode()}
+                    leftPress={() => {
+                        this.props.navigation.state.params.refresh();
+                        this.props.navigation.goBack();
+                    }} />
                 <this.InputComponent />
                 <TouchableWithoutFeedback onPress={() => this.searchInput && this.searchInput.blur()} >
                     <View style={{ flex: 1, backgroundColor: "#F0F0F0" }}>
                         <Text style={{ marginTop: 18, marginBottom: 9, marginLeft: 25, color: "#000" }}>新的朋友</Text>
-                        {
-                            this.state.newFriendList.map((item, index) => (
-                                <TouchableOpacity key={index} onPress={() => this.props.navigation.navigate("UserInfo", { userInfo: item })}>
-                                    <View style={styles.optionContainer}>
-                                        <View style={styles.optionWrapper}>
-                                            <Image style={styles.avatar} source={{ uri: item.header_img }} />
-                                            <Text style={styles.userName}>{item.username}</Text>
-                                        </View>
-                                        <TouchableOpacity
-                                            onPress={this.dataRequest.bind(this, "agreeSubmit", item.userid)}
-                                            disabled={!(item.status == 3)}
-                                        >
-                                            <View style={{ backgroundColor: item.status == 3 ? "#196FF0" : "#fff", borderRadius: 6 }}>
-                                                <Text style={{ marginHorizontal: 9, lineHeight: 30, textAlign: "center", color: item.status == 3 ? "#fff" : "#666" }}>
-                                                    {this.status[item.status]}
-                                                </Text>
-                                            </View>
-                                        </TouchableOpacity>
-                                    </View>
-                                    <View style={{ display: (this.state.newFriendList.length == index + 1) ? "none" : "flex", backgroundColor: "#fff" }}>
-                                        <View style={{ height: 1, backgroundColor: "#eee", marginHorizontal: 25 }}></View>
-                                    </View>
-                                </TouchableOpacity>
-                            ))
-                        }
+                        <FlatList
+                            style={{ flex: 1 }}
+                            data={this.state.newFriendList}
+                            keyExtractor={(item, index) => index.toString()}
+                            renderItem={({ item, index }) => this.newFriendList(item, index)}
+                        // onRefresh={this.refresh.bind(this, "group")}
+                        // refreshing={this.state.refreshing}
+                        />
                     </View>
                 </TouchableWithoutFeedback>
             </View>
