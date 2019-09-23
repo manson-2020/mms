@@ -116,19 +116,25 @@ class MobileContacts extends React.Component {
             // refreshing={this.state.refreshing} // 是否刷新 ，自带刷新控件
             />
             {this.state.showRightIndex && <this.sectionIndex />}
-        </React.Fragment> 
+        </React.Fragment>
     )
 
 
     renderItem = info => (
-        <TouchableOpacity>
-            <View style={styles.itemContainer}>
-                <Image source={{ uri: info.item.header_img }} style={styles.avatar} />
-                <Text style={styles.rowStyle}>
-                    {info.item.nickname || info.item.username}
-                </Text>
-            </View>
-        </TouchableOpacity>
+
+        <View style={styles.itemContainer}>
+            <Image source={{ uri: info.item.header_img }} style={styles.avatar} />
+            <Text style={styles.rowStyle}>
+                {info.item.nickname || info.item.username}
+            </Text>
+
+            <TouchableOpacity
+                style={{ backgroundColor: info.item.type ? "#fff" : "#196FF0", borderRadius: 6 }}
+                onPress={() => console.warn(123)}
+            >
+                <Text style={{ marginHorizontal: 9, lineHeight: 30, textAlign: "center", color: info.item.type ? "#666" : "#fff" }}> {info.item.type ? "已添加" : "添加"}</Text>
+            </TouchableOpacity>
+        </View>
     )
 
     // 处理事件
@@ -229,11 +235,14 @@ const styles = StyleSheet.create({
     itemContainer: {
         flexDirection: "row",
         alignItems: "center",
-        height: rowHeight
+        justifyContent: "space-between",
+        height: rowHeight,
+        paddingLeft: 15,
+        paddingRight: 30
     },
     rowStyle: {
         lineHeight: rowHeight,
-        width: width,
+        flex: 1,
         color: "#333",
         fontSize: 16,
         fontWeight: "500",
@@ -256,7 +265,7 @@ const styles = StyleSheet.create({
     },
     sectionItemViewStyle: {
         position: 'absolute',
-        right: 18
+        right: 15
     },
     sectionViewStyle: {
         borderRadius: 6,
@@ -273,7 +282,6 @@ const styles = StyleSheet.create({
     avatar: {
         width: 38,
         height: 38,
-        marginLeft: 15,
         borderRadius: 19
     },
     checkBox: {
