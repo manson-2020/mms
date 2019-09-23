@@ -152,7 +152,13 @@ class AddFriend extends React.Component {
                 <this.InputComponent />
                 <TouchableWithoutFeedback onPress={() => this.searchInput && this.searchInput.blur()} >
                     <View style={{ flex: 1, backgroundColor: "#F0F0F0" }}>
-                        <Text style={{ marginTop: 18, marginBottom: 9, marginLeft: 25, color: "#000" }}>新的朋友</Text>
+                        <View style={{ justifyContent: "space-around", flexDirection: "row", backgroundColor: "#fff", paddingVertical: 9 }}                        >
+                            <TouchableOpacity style={{ alignItems: "center" }} onPress={() => this.props.navigation.navigate("MobileContacts")} >
+                                <Image style={{ width: 19, height: 30 }} source={require("../assets/images/icon-phone-blue.png")} />
+                                <Text style={{ color: "#333", marginTop: 9, }}>手机联系人</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <Text style={{ marginVertical: 12, marginLeft: 25, color: "#000" }}>新的朋友</Text>
                         <FlatList
                             style={{ flex: 1 }}
                             data={this.state.newFriendList}

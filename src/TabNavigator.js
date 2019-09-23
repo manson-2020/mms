@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, View, StyleSheet, YellowBox } from 'react-native';
+import { Image, View, StyleSheet, YellowBox, Platform } from 'react-native';
 import { createAppContainer, createMaterialTopTabNavigator } from 'react-navigation';
 import Message from './pages/Message';
 import AddressBook from './pages/AddressBook';
@@ -23,7 +23,6 @@ const imagesArr = {
 const TabBarIcon = props => {
     const styles = StyleSheet.create({
         container: {
-            height: 28,
             width: 35,
             justifyContent: "center",
             alignItems: "center"
@@ -91,26 +90,32 @@ const TabNavigator = createMaterialTopTabNavigator({
         }
     }
 }, {
-        // initialRouteName: 'AddressBook',
-        swipeEnabled: true,
-        animationEnabled: true,
-        tabBarPosition: "bottom", //如果在顶部，就是 top
-        tabBarOptions: {
-            showIcon: true, // 是否显示图标, 默认为false
-            showLabel: true, // 是否显示label
-            labelStyle: {
-                fontSize: 10,
-                color: '#000'
-            },
-            style: {
+    // initialRouteName: 'AddressBook',
+    swipeEnabled: true,
+    animationEnabled: true,
+    tabBarPosition: "bottom", //如果在顶部，就是 top
+    tabBarOptions: {
+        showIcon: true, // 是否显示图标, 默认为false
+        showLabel: true, // 是否显示label
+        labelStyle: {
+            fontSize: 10,
+            color: '#000'
+        },
+        style: [
+            {
                 backgroundColor: '#fff',
                 borderTopWidth: 1,
                 borderTopColor: '#FEF1F4',
             },
-            indicatorStyle: {
-                height: 0, // 不显示indicator
-            },
+            Platform.OS == "ios" &&
+            {
+                height: 80
+            }
+        ],
+        indicatorStyle: {
+            height: 0, // 不显示indicator
         },
-    });
+    },
+});
 
 export default createAppContainer(TabNavigator);

@@ -118,7 +118,7 @@ class AddressBook extends React.Component {
             //让对应索引框内的索引值高亮
             this.setState({ index: index });
             // 默认跳转到 第 index 个section  的第 1 个 item
-            // this.friendList.scrollToLocation({ animated: true, itemIndex: 0, sectionIndex: index })
+            this.friendList.scrollToLocation({ animated: true, itemIndex: 0, sectionIndex: index })
         } else {
             this.setState({ isTouchDown: false })
         }
