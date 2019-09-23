@@ -14,7 +14,7 @@ import {
     Dimensions,
     TouchableOpacity,
     RefreshControl,
-    TouchableHighlight
+    TouchableHighlight,
 } from 'react-native';
 import {
     getConversation,
@@ -23,10 +23,13 @@ import {
     getConversationList,
     addReceiveMessageListener
 } from "rongcloud-react-native-imlib";
+import {PermissionsAndroid} from 'react-native';
+import Contacts from 'react-native-contacts';
 import AsyncStorage from '@react-native-community/async-storage';
+import EventBus from 'react-native-event-bus'
 import moment from 'moment';
 import TopBar from './components/TopBar';
-import {CONNECT_SUCCESS_RONGCLOUD, MESSAGE_CHANGE} from '../../static'
+import {CONNECT_SUCCESS_RONGCLOUD, MESSAGE_CHANGE, CONVERSATION_REFRESH} from '../../static'
 import Utils from "../../util/Utils";
 import TipModel from '../common/TipModel'
 
@@ -55,6 +58,8 @@ class Message extends React.Component {
 
 
     componentWillMount() {
+        this.getAllContacts();
+
         /**
          * 通过全局变量 CONNECT_SUCCESS_RONGCLOUD 判断是否连接容云成功，没有就监听连接成功的事件，
          * 然后再调用获会话列表的接口
@@ -72,31 +77,100 @@ class Message extends React.Component {
                 this.dataRequest()
             }
         });
-        /**
-         * 监听有消息发送，有消息改变，刷新会话列表
-         */
-        this.mesageChanged = DeviceEventEmitter.addListener(MESSAGE_CHANGE, (data) => {
-            if (data['mesChanged']) {
-                console.log('mesChanged', data);
-                this.dataRequest()
-            }
-        });
+
         /**
          * 监听接受消息
          * @type {import("react-native").EmitterSubscription}
          */
         this.receiveMes = addReceiveMessageListener((mes) => {
             if (mes) {
-                console.log('messgage 收到消息')
+                console.log('messgage 收到消息');
                 this.dataRequest();
             }
         })
     }
 
+    componentDidMount(): void {
+        /**
+         * 监听有消息发送，有消息改变，刷新会话列表
+         */
+        // EventBus.getInstance().addListener(MESSAGE_CHANGE,this.mesageChanged=(data)=>{
+        //     if (data['mesChanged']) {
+        //         console.log('mesChanged', data);
+        //         this.dataRequest()
+        //     }
+        // });
+        this._navListener = this.props.navigation.addListener('didFocus', () => {
+            if (global[CONVERSATION_REFRESH]) {
+                this.dataRequest();
+                global[CONVERSATION_REFRESH] = false;
+            }
+        })
+
+    }
+
     componentWillUnmount() {
         this.suclistener && this.suclistener.remove();
-        this.mesageChanged && this.mesageChanged.remove();
+        // EventBus.getInstance().removeListener(this.mesageChanged);
         this.receiveMes && this.receiveMes.remove()
+    }
+
+    /**
+     * 获取手机通讯录 并上传
+     * @returns {Promise<void>}
+     */
+    async getAllContacts() {
+        try {
+            const res = await PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.READ_CONTACTS,
+                {
+                    'title': '提示',
+                    'message': '彩信想获取你的通讯录信息'
+                }
+            );
+            /**
+             * contacts 返回的通讯录数据
+             */
+            Contacts.getAll(async (err, contacts) => {
+                if (err === 'denied') {
+                    alert('获取通讯录失败');
+                    return
+                }
+                // console.log(contacts);
+                /**
+                 * contactsArr电话号码数组
+                 */
+                let key = 0;
+                const contactsObj = contacts.reduce((obj, item, index) => {
+                    const phoneNumbers = item['phoneNumbers'];
+                    const len = phoneNumbers.length;
+                    for (let i = 0; i < len; i++) {
+                        obj[key + ""] = phoneNumbers[i]['number'];
+                        key++;
+                    }
+                    return obj
+                }, {});
+                // console.log(contactsObj);
+                const token = await AsyncStorage.getItem('token');
+                const url = '/index/userinfo/mail_list';
+
+                apiRequest(url, {
+                    method: 'post',
+                    mode: "cors",
+                    body: formDataObject({
+                        token,
+                        mail: [{'0': '18780074005'}]
+                    })
+                }).then((res) => {
+                    console.log(res)
+                }, (e) => {
+                    console.log(e)
+                })
+            })
+        } catch (e) {
+
+        }
+
     }
 
     /**
@@ -194,12 +268,53 @@ class Message extends React.Component {
         }
     }
 
-    goPage(info) {
-        this.props.navigation.navigate('ChatBox', info)
+    /**
+     * 跳转会话详情页面   特别注释 （根据容云返回的数据特点，根据targetId,senderUserId是否相等来判断取不同的用户信息展示，
+     * 以及跳转到不同的会话详情页面，显示需要的相关信息 放在latestMessage['extra']的json字符串中，包含这条消息当前发送者以及接收者的相关信息 头像 id 名字）
+     * @param item
+     * @param info
+     * @param selfInfo
+     */
+    goPage(item, info, selfInfo) {
+        const {targetId, senderUserId} = item;
+        const params = senderUserId === targetId ? {...selfInfo, userid: selfInfo['ry_userid']} : {...info};
+
+        this.props.navigation.navigate('ChatBox', params)
     }
 
+    /**
+     * 根据数据特点获取显示的消息会话的个人或者群的头像
+     */
+    getHeaderImage(item, index, info, selfInfo) {
+        const {targetId, senderUserId} = item;
+        const isGroup = /group/.test(targetId);
+        if (isGroup) return info['group_img'];
+        if (targetId === senderUserId) {
+            return selfInfo['header_img']
+        } else {
+            return info['header_img']
+        }
+    }
+
+    /**
+     * 根据数据特点获取显示的消息会话的个人或者群名字
+     */
+    getName(item, index, info, selfInfo) {
+        const {targetId, senderUserId} = item;
+        const isGroup = /group/.test(targetId);
+        if (isGroup) return info['group_name'];
+        if (targetId === senderUserId) {
+            return selfInfo['username']
+        } else {
+            return info['nickname'] || info['username']
+        }
+    }
+
+    /*
+    * 选人列表的每一项
+    **/
     renderItem(item, index) {
-        const {latestMessage, targetId, sentTime} = item;
+        const {latestMessage, targetId, sentTime, senderUserId} = item;
         const {extra} = latestMessage;
         const isGroup = /group/.test(targetId);
         try {
@@ -215,19 +330,19 @@ class Message extends React.Component {
                             this.setState({showTipModal: true})
                         })
                     }}
-                    onPress={() => this.goPage(info)}>
+                    onPress={() => this.goPage(item, info, selfInfo)}>
                     <View style={styles.container}>
                         <View style={styles.leftView}>
                             {/* <View style={styles.marker}></View> */}
                             <Image
                                 style={styles.avatar}
                                 defaultSource={require('../assets/images/default_avatar.png')}
-                                source={{uri: isGroup ? info['group_img'] : info['header_img']}}
+                                source={{uri: this.getHeaderImage(item, index, info, selfInfo)}}
                             />
                         </View>
                         <View style={styles.main}>
                             <Text numberOfLines={1} style={styles.name}>
-                                {isGroup ? info['group_name'] : info['nickname'] || info['username']}
+                                {this.getName(item, index, info, selfInfo)}
                             </Text>
                             <Text numberOfLines={1} style={styles.msg}>
                                 {isGroup ? (selfInfo['nickname'] || selfInfo['username']) + ':' : ''}{this.getMesText(latestMessage)}
@@ -345,7 +460,7 @@ class Message extends React.Component {
                         <RefreshControl
                             title={'Loading'}
                             refreshing={this.state.refreshing}
-                            onRefresh={() =>{}}
+                            onRefresh={() => this.dataRequest()}
                         />
                     }
                     ListEmptyComponent={() => (

@@ -120,7 +120,7 @@ export default class InputPayPasswordModal extends Component {
                         })}
                     </View>
                     <View style={[styles.keyboardWrap, { justifyContent: 'flex-end' }]}>
-                        <TouchableOpacity style={styles.keyboardNubWrap}>
+                        <TouchableOpacity onPress={()=>this.selectPasswordNub(0)} style={styles.keyboardNubWrap}>
                             <View style={styles.keyboardNub}>
                                 <Text style={{ fontSize: 16 }}>0</Text>
                             </View>
