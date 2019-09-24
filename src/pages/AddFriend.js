@@ -98,6 +98,7 @@ class AddFriend extends React.Component {
             </TouchableWithoutFeedback>
         </View>
     );
+
     /**
      * 扫描二维码添加朋友
      */

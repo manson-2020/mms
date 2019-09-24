@@ -38,9 +38,9 @@ import EventBus from 'react-native-event-bus'
 import VideoPlay from '../common/VideoPlay'
 import ViewerImageModal from '../common/ViewerImageModal'
 import GetRedBags from '../common/GetRedBags'
-import {MESSAGE_CHANGE,CONVERSATION_REFRESH} from '../../static'
+import { MESSAGE_CHANGE, CONVERSATION_REFRESH } from '../../static'
 
-const {width} = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 // 18981796331
 
@@ -73,7 +73,7 @@ class ChatBox extends React.Component {
             currentVoice: '',
             redBagsItem: null,
         }
-        ;
+            ;
         this.dataNum = 9;
         this.bottomData = [
             {
@@ -224,12 +224,12 @@ class ChatBox extends React.Component {
                                 console.log(result)
                                 const status = await this.setStatusRedBags(result, value[0][1]);
                                 status.forEach((itemStatus) => {
-                                    const {index, code} = itemStatus;
+                                    const { index, code } = itemStatus;
                                     result[index]['redBagsCode'] = code
                                 });
                                 const imageUrls = [];
                                 result.map((item) => {
-                                    const {objectName, remote, local, thumbnail} = item['content'];
+                                    const { objectName, remote, local, thumbnail } = item['content'];
                                     if (objectName === 'RC:ImgMsg') {
                                         imageUrls.push({
                                             url: remote || thumbnail, freeHeight: true
@@ -237,7 +237,7 @@ class ChatBox extends React.Component {
                                     }
 
                                 });
-                                this.setState({msgData: result, imageUrls});
+                                this.setState({ msgData: result, imageUrls });
                             });
                     });
                 }).catch(error => console.warn(error));
@@ -251,19 +251,19 @@ class ChatBox extends React.Component {
                     })
                 }).then(req => {
                     console.log('userInfo', req.res)
-                    this.setState({userInfo: req.res}, () => {
+                    this.setState({ userInfo: req.res }, () => {
                         getHistoryMessages(ConversationType.PRIVATE, this.targetId, [ObjectName.Text, ObjectName.Image, ObjectName.File], 0, 30)
                             .then(async result => {
                                 console.log(result)
                                 const status = await this.setStatusRedBags(result, value[0][1]);
                                 status.forEach((itemStatus) => {
-                                    const {index, code} = itemStatus;
+                                    const { index, code } = itemStatus;
                                     result[index]['redBagsCode'] = code
                                 });
 
                                 const imageUrls = [];
                                 result.map((item) => {
-                                    const {objectName, remote, local, thumbnail} = item['content'];
+                                    const { objectName, remote, local, thumbnail } = item['content'];
                                     if (objectName === 'RC:ImgMsg') {
                                         imageUrls.push({
                                             url: remote || thumbnail, freeHeight: true
@@ -271,7 +271,7 @@ class ChatBox extends React.Component {
                                     }
 
                                 });
-                                this.setState({msgData: result, imageUrls});
+                                this.setState({ msgData: result, imageUrls });
                             });
 
                     })
@@ -295,14 +295,14 @@ class ChatBox extends React.Component {
     componentWillUnmount() {
         this.listener.remove();
     }
-    emtiEventMesChange(){
-        global[CONVERSATION_REFRESH]=true
+    emtiEventMesChange() {
+        global[CONVERSATION_REFRESH] = true
     }
     setStatusRedBags(result, token) {
         const proArr = [];
         for (let i = 0; i < result.length; i++) {
             const item = result[i];
-            const {extra, content, senderUserId, objectName} = item.content;
+            const { extra, content, senderUserId, objectName } = item.content;
             if (objectName === 'RC:TxtMsg' && extra && JSON.parse(extra)['type'] === 'redBags') {
                 proArr.push(this.getRedBagsStatus(token, JSON.parse(extra)['hb_orderid'], i))
             }
@@ -323,9 +323,9 @@ class ChatBox extends React.Component {
             apiRequest(url, {
                 method: 'post',
                 mode: "cors",
-                body: JSON.stringify({token, rm_orderid})
+                body: JSON.stringify({ token, rm_orderid })
             }).then((res) => {
-                resolve({...res, index})
+                resolve({ ...res, index })
             }, (e) => {
                 reject(e)
             })
@@ -336,8 +336,8 @@ class ChatBox extends React.Component {
     _createListFooter = () => {
         return (
             <View style={styles.footerView}>
-                {this.state.showFoot === 1 && <ActivityIndicator/>}
-                <Text style={{color: 'red'}}>
+                {this.state.showFoot === 1 && <ActivityIndicator />}
+                <Text style={{ color: 'red' }}>
                     {this.state.showFoot === 1 ? '正在加载更多数据...' : '没有更多数据了'}
                 </Text>
             </View>
@@ -356,8 +356,8 @@ class ChatBox extends React.Component {
 
 
     ChatFrame(item, index) {
-        const {groupListInfo, selfInfo, userInfo} = this.state;
-        const {senderUserId} = item;
+        const { groupListInfo, selfInfo, userInfo } = this.state;
+        const { senderUserId } = item;
         const targetHeader = !this.isGroup ? userInfo.header_img : (groupListInfo[senderUserId] ? groupListInfo[senderUserId].header_img : "");
         const targetName = groupListInfo[senderUserId] && (groupListInfo[senderUserId]['nickname'] || groupListInfo[senderUserId]['username']) || '';
         return (
@@ -380,9 +380,7 @@ class ChatBox extends React.Component {
                                     marginRight: 9,
                                     marginBottom: 6
                                 }}>
-                                    {
-                                        targetName
-                                    }
+                                    {targetName}
                                 </Text>
                             }
                             <View style={{
@@ -395,15 +393,15 @@ class ChatBox extends React.Component {
                             </View>
                         </View>
                         <Image
-                            style={{width: 38, height: 38, borderRadius: 19}}
-                            source={{uri: selfInfo.header_img}}/>
+                            style={{ width: 38, height: 38, borderRadius: 19 }}
+                            source={{ uri: selfInfo.header_img }} />
 
                     </View>
                     :
-                    <View style={{flexDirection: "row", marginBottom: 15, marginLeft: 15, marginTop: !index ? 15 : 0}}>
+                    <View style={{ flexDirection: "row", marginBottom: 15, marginLeft: 15, marginTop: !index ? 15 : 0 }}>
                         <TouchableWithoutFeedback onPress={() => this.props.navigation.navigate('UserInfo')}>
                             <Image
-                                style={{width: 38, height: 38, borderRadius: 19}}
+                                style={{ width: 38, height: 38, borderRadius: 19 }}
                                 source={{
                                     uri: targetHeader
                                 }}
@@ -424,12 +422,12 @@ class ChatBox extends React.Component {
                                     }
                                 </Text>
                             }
-                            <View style={{backgroundColor: "#fff", maxWidth: 220, marginLeft: 10, borderRadius: 5}}>
+                            <View style={{ backgroundColor: "#fff", maxWidth: 220, marginLeft: 10, borderRadius: 5 }}>
                                 <View style={{
                                     color: "#333",
                                     fontSize: 16,
                                     lineHeight: 21
-                                }}>{this.showMesByObjectName(item, index, false,)}</View>
+                                }}>{this.showMesByObjectName(item, index, false)}</View>
                             </View>
                         </View>
                     </View>
@@ -439,35 +437,61 @@ class ChatBox extends React.Component {
         );
     }
 
-    getBottomOption() {
-        return (
-            <View style={styles.moreOption}>
-                {
-                    this.bottomData.map((item, index) => (
-                        <TouchableWithoutFeedback key={index} onPress={() => item.onClick()}>
-                            <View style={[styles.optionContainer, {marginTop: index >= 4 ? 40 : 0}]}>
-                                <Image style={{width: item.width, height: item.height}} source={item.source}/>
+    getBottomOption = () => {
+
+        if (this.state.isEmoji) {
+            return (
+                <View style={styles.moreOption}>
+                    {"[Smile],[Grimace],[Drool],[Scowl],[CoolGuy],[Sob],[Shy],[Silent],[Sleep],[Cry],[Awkward],[Angry],[Tongue],[Grin],[Surprise],[Frown],[Blush],[Scream],[Puke],[Chuckle],[Joyful],[Slight],[Smug]".split(",").map((item, index) => (
+                        <TouchableOpacity
+                            onPress={() => this.setState({ msgText: this.state.msgText + item })}
+                            key={index}
+                            style={{ width: "12.5%", alignItems: "center", justifyContent: "center" }}
+                        >
+                            <View style={{ width: 30, height: 30, backgroundColor: "#8f71ff", marginVertical: 10, borderRadius: 15 }} />
+                        </TouchableOpacity>
+                    ))}
+                    <TouchableOpacity style={{ width: "12.5%", alignItems: "center", justifyContent: "center", }}>
+                        <View style={{ width: 30, height: 30, backgroundColor: "#f30", marginVertical: 10, borderRadius: 15 }} />
+                    </TouchableOpacity>
+                </View>
+            )
+        } else if (this.state.isShow) {
+            return (
+                <View style={styles.moreOption}>
+                    {
+                        this.bottomData.map((item, index) => (
+                            <TouchableOpacity
+                                key={index}
+                                onPress={() => item.onClick()}
+                                style={[styles.optionContainer, { marginTop: index >= 4 ? 40 : 0 }]}
+                            >
+                                <Image style={{ width: item.width, height: item.height }} source={item.source} />
                                 <Text style={styles.optionText}>{item.text}</Text>
-                            </View>
-                        </TouchableWithoutFeedback>
-                    ))
-                }
-            </View>
-        );
+                            </TouchableOpacity>
+                        ))
+                    }
+                </View>
+            )
+        } else {
+            return <View />
+        }
     }
 
-    showMore() {
+    showMore(isEmoji) {
         if (this.msgInput.isFocused) {
             Keyboard.dismiss();
         }
-        if(this.state.showVoiceBtn){
-            this.setState({showVoiceBtn:false})
+        if (this.state.showVoiceBtn) {
+            this.setState({ showVoiceBtn: false })
         }
-        this.setState({
-            isShow: !this.state.isShow
-        });
-        Animated.timing(this.state.animatedValue, {toValue: this.state.isShow ? 0 : 215, duration: 300,}).start();
+
+        this.setState(isEmoji ? { isEmoji: !this.state.isEmoji, isShow: false } : { isEmoji: false, isShow: !this.state.isShow }, () => {
+            Animated.timing(this.state.animatedValue, { toValue: !(this.state.isShow || this.state.isEmoji) ? 0 : 215, duration: 200, }).start();
+        })
     }
+
+
 
     sendMessage() {
         // this.setState({ msgText: msgText.replace(/\n/g, "") })
@@ -509,13 +533,13 @@ class ChatBox extends React.Component {
      * 选择相册并发送图片消息
      */
     checkedImages() {
-        MediaUtils.openPicker({mediaType: 'any', multiple: true}).then((res) => {
+        MediaUtils.openPicker({ mediaType: 'any', multiple: true }).then((res) => {
 
             /**
              * 根据选择的图片的数量循环上传
              */
             res.forEach(async (item) => {
-                const {path, mime} = item;
+                const { path, mime } = item;
                 let content = null;
                 if (/video/.test(mime)) {
                     try {
@@ -530,7 +554,7 @@ class ChatBox extends React.Component {
                                 type: 'video',
                                 path: thumbnailPpath,
                                 info: this.info,
-                                selfInfo:  this.state.selfInfo
+                                selfInfo: this.state.selfInfo
                             })
                         }
                     } catch (e) {
@@ -544,7 +568,7 @@ class ChatBox extends React.Component {
                         extra: JSON.stringify({
                             type: 'image',
                             info: this.info,
-                            selfInfo:  this.state.selfInfo
+                            selfInfo: this.state.selfInfo
                         })
                     };
                 }
@@ -561,11 +585,11 @@ class ChatBox extends React.Component {
                         };
                         this.setState((pre) => {
                             if (/video/.test(mime)) {
-                                return {msgData: [nMes, ...pre.msgData],}
+                                return { msgData: [nMes, ...pre.msgData], }
                             } else {
                                 return {
                                     msgData: [nMes, ...pre.msgData],
-                                    imageUrls: [{url: path, freeHeight: true}, ...pre.imageUrls]
+                                    imageUrls: [{ url: path, freeHeight: true }, ...pre.imageUrls]
                                 }
                             }
                         });
@@ -584,7 +608,7 @@ class ChatBox extends React.Component {
      * 打开红包
      */
     async openRedBags(item, index, isSelf, extra) {
-        const {redBagsCode, senderUserId} = item;
+        const { redBagsCode, senderUserId } = item;
         const isGroup = /group/.test(this.targetId);
         const token = await AsyncStorage.getItem('token');
         if (isSelf && !isGroup) {
@@ -603,7 +627,7 @@ class ChatBox extends React.Component {
         if (redBagsCode == 200) {
             this.setState((pre) => {
                 console.log('redBagsCode', redBagsCode);
-                const redBagsItem = isGroup ? {...pre.groupListInfo[senderUserId]} : {...pre.userInfo};
+                const redBagsItem = isGroup ? { ...pre.groupListInfo[senderUserId] } : { ...pre.userInfo };
 
                 return {
                     redBagsItem: {
@@ -619,7 +643,7 @@ class ChatBox extends React.Component {
                 this.getRedBags.show()
             });
         } else {
-            const redBagsItem = isGroup ? {...this.state.groupListInfo[senderUserId]} : {...this.state.userInfo};
+            const redBagsItem = isGroup ? { ...this.state.groupListInfo[senderUserId] } : { ...this.state.userInfo };
             const selfStatus = await this.getRedBagsStatus(token, JSON.parse(extra)['hb_orderid']);
             console.log('senderUserId', senderUserId)
             if (selfStatus) {
@@ -634,31 +658,86 @@ class ChatBox extends React.Component {
         }
     }
 
+    stringToContentArray(text) {
+        let reg = new RegExp(/\[ww]|\[微笑]/, 'g');
+        let contentArray = [];
+        let regArray = text.match(reg);
+        if (regArray === null) {
+            contentArray.push({ "content": text });
+            return contentArray;
+        }
+        let indexArray = [];
+        let pos = text.indexOf(regArray[0]);//头
+
+        for (let i = 1; i < regArray.length; i++) {
+            indexArray.push(pos);
+            pos = text.indexOf(regArray[i], pos + 1);
+        }
+        indexArray.push(pos);//尾
+
+        let result = [];
+        indexArray.map((item, index) => {
+            if (!index) {
+                result.push({ text: text.substring(index, item) });
+            }
+            result.push({ emoji: text.substring(item, item + 4) });
+            result.push({ text: text.substring(item + 4, indexArray[index + 1]) });
+        })
+
+        return result;
+    }
+
     _renderTxtMsg(item, index, isSelf) {
-        const {extra, content, senderUserId} = item.content;
+        const { extra, content, senderUserId } = item.content;
         if (!extra) {
-            return <Text style={[styles.textMes, {color: isSelf ? '#fff' : '#333'}]}>
-                {content}
-            </Text>;
+            return (
+                <Text style={[styles.textMes, { color: isSelf ? '#fff' : '#333' }]}>
+                    {content}
+                </Text>
+            )
         }
         try {
-            const {hb_orderid, type,} = JSON.parse(extra);
+            const { hb_orderid, type, } = JSON.parse(extra);
             if (type === 'redBags') {
                 const iswlq = item['redBagsCode'] == 115 || item['redBagsCode'] == 200
-                return <TouchableOpacity activeOpacity={1}
-                                         onPress={() => this.openRedBags(item, index, isSelf, extra)}
-                                         style={styles.redBagsWrap}>
-                    <View style={[styles.redBagsTop, {backgroundColor: !iswlq ? '#BC3D3D' : '#FF5353'}]}>
-                        <Image style={{width: 32, height: 37, marginRight: 12}}
-                               source={!iswlq ? require('../assets/img/img-open-red-envelope.png') : require('../assets/img/img-red-envelope.png')}/>
-                        <Text style={{color: '#fff'}}>恭喜发财，红包拿来</Text>
-                    </View>
-                    <Text style={{paddingLeft: 15}}>彩信红包</Text>
-                </TouchableOpacity>
+                return (
+                    <TouchableOpacity activeOpacity={1}
+                        onPress={() => this.openRedBags(item, index, isSelf, extra)}
+                        style={styles.redBagsWrap}>
+                        <View style={[styles.redBagsTop, { backgroundColor: !iswlq ? '#BC3D3D' : '#FF5353' }]}>
+                            <Image style={{ width: 32, height: 37, marginRight: 12 }}
+                                source={!iswlq ? require('../assets/img/img-open-red-envelope.png') : require('../assets/img/img-red-envelope.png')} />
+                            <Text style={{ color: '#fff' }}>恭喜发财，大吉大利</Text>
+                        </View>
+                        <Text style={{ paddingLeft: 15 }}>彩信红包</Text>
+                    </TouchableOpacity>
+                )
             } else {
-                return <Text style={[styles.textMes, {color: isSelf ? '#fff' : '#333'}]}>
-                    {content}
-                </Text>;
+                let emoji = {
+                    "[微笑]": require("../assets/emoji/ww.png"),
+                    "[ww]": require("../assets/emoji/ww.png")
+                }
+                return (
+                    <View style={{ flexDirection: "row", alignItems: "center", padding: 12, flexWrap: "wrap" }}>
+                        {
+                            this.stringToContentArray(content).map((item, index) => {
+                                if (item.text || item.content) {
+                                    return <Text style={{ fontSize: 16, color: isSelf ? '#fff' : '#333' }} key={index}>{item.text || item.content}</Text>
+                                } else {
+                                    return <Image key={index} source={emoji[item.emoji]} style={{ width: 20, height: 20 }} />
+                                }
+                            })
+                        }
+                    </View>
+                );
+
+
+                // return (
+                //     <View style={{ flexDirection: "row", flexWrap: "wrap", }}>
+                //         {/* <Image source={require('../assets/images/ab0_icon.png')} style={{ width: 30, height: 30, borderRadius: 15 }} /> */}
+                //         <Text style={[styles.textMes, { color: isSelf ? '#fff' : '#333' }]}>{content}</Text>
+                //     </View>
+                // )
             }
         } catch (e) {
             return null
@@ -673,8 +752,8 @@ class ChatBox extends React.Component {
      * @returns {*}
      */
     showMesByObjectName(item, index, isSelf) {
-        const {content} = item;
-        const {remote, thumbnail, local, objectName, extra} = content;
+        const { content } = item;
+        const { remote, thumbnail, local, objectName, extra } = content;
         switch (objectName) {
             /**
              * 文本消息
@@ -686,7 +765,7 @@ class ChatBox extends React.Component {
              */
             case 'RC:ImgMsg':
                 return <TouchableOpacity onPress={() => this.viewImages(local, thumbnail, remote)}>
-                    <Image style={{width: 100, height: 150,}} source={{uri: local || thumbnail || remote}}/>
+                    <Image style={{ width: 100, height: 150, }} source={{ uri: local || thumbnail || remote }} />
                 </TouchableOpacity>;
             /**
              * 文件消息
@@ -705,10 +784,10 @@ class ChatBox extends React.Component {
                         activeVideoUrl: local || remote,
                         activeposter: extra
                     })} style={styles.videoWrap}>
-                        <Image style={{width: '100%', height: '100%',}}
-                               source={{uri: extradata['path']}}/>
+                        <Image style={{ width: '100%', height: '100%', }}
+                            source={{ uri: extradata['path'] }} />
                         <View style={styles.playBtnWrap}>
-                            <Image style={{width: 40, height: 40,}} source={require('../assets/images/play-btn.png')}/>
+                            <Image style={{ width: 40, height: 40, }} source={require('../assets/images/play-btn.png')} />
                         </View>
                     </TouchableOpacity>;
                 }
@@ -721,10 +800,10 @@ class ChatBox extends React.Component {
                             fontSize: 16,
                             paddingLeft: 10
                         }}>{parseInt(extradata['duration'])}</Text>
-                        <Image style={{width: 21, height: 20}} source={require("../assets/images/icon-voice.png")}/>
+                        <Image style={{ width: 21, height: 20 }} source={require("../assets/images/icon-voice.png")} />
                     </TouchableOpacity>
                 }
-            default :
+            default:
                 return null
         }
     }
@@ -735,7 +814,7 @@ class ChatBox extends React.Component {
      * @param remote
      */
     playVoice(local, remote) {
-        const {currentVoice} = this.state;
+        const { currentVoice } = this.state;
         if (currentVoice && currentVoice === local.slice(7) || currentVoice === remote) {
             if (this.playVoiceMes.sound.isPlaying()) {
                 this.playVoiceMes.sound.pause()
@@ -759,7 +838,7 @@ class ChatBox extends React.Component {
      */
     viewImages(local, thumbnail, remote) {
         // local ||thumbnail|| remote
-        const {imageUrls} = this.state;
+        const { imageUrls } = this.state;
         let imgActiveIndex = -1;
         for (let i = 0; i < imageUrls.length; i++) {
             if ([local, thumbnail, remote].includes(imageUrls[i]['url'])) {
@@ -778,7 +857,7 @@ class ChatBox extends React.Component {
         const url = '/index/user/up';
         const formData = new FormData();
         const arr = imgUrl.split('/');
-        const file = {uri: imgUrl, type: 'multipart/form-data', name: arr[arr.length - 1]};
+        const file = { uri: imgUrl, type: 'multipart/form-data', name: arr[arr.length - 1] };
         formData.append('files', file);
         return apiRequest(url, {
             method: 'post',
@@ -793,7 +872,7 @@ class ChatBox extends React.Component {
      * @returns {Promise<void>}
      */
     async takeCamera(data) {
-        const {type, uri} = data;
+        const { type, uri } = data;
         let content = null;
         if (type === 'video') {
             try {
@@ -809,7 +888,7 @@ class ChatBox extends React.Component {
                         type: 'video',
                         localPath: thumbnail.path,
                         info: this.info,
-                        selfInfo:  this.state.selfInfo
+                        selfInfo: this.state.selfInfo
                     })
                 }
             } catch (e) {
@@ -822,7 +901,7 @@ class ChatBox extends React.Component {
                 extra: JSON.stringify({
                     type: 'image',
                     info: this.info,
-                    selfInfo:  this.state.selfInfo
+                    selfInfo: this.state.selfInfo
                 })
             }
         }
@@ -843,7 +922,7 @@ class ChatBox extends React.Component {
                 }));
                 if (type !== 'video') {
                     this.setState((pre) => ({
-                        imageUrls: [{url: uri, freeHeight: true}, ...pre.imageUrls]
+                        imageUrls: [{ url: uri, freeHeight: true }, ...pre.imageUrls]
                     }));
                 }
             },
@@ -859,7 +938,7 @@ class ChatBox extends React.Component {
     toggleVoiceBtn() {
         this.setState((pre) => {
             if (pre.isShow) {
-                Animated.timing(this.state.animatedValue, {toValue: 0, duration: 0,}).start();
+                Animated.timing(this.state.animatedValue, { toValue: 0, duration: 0, }).start();
                 return {
                     showVoiceBtn: !pre.showVoiceBtn,
                     isShow: false,
@@ -884,7 +963,7 @@ class ChatBox extends React.Component {
                 duration,
                 type: 'voice',
                 info: this.info,
-                selfInfo:  this.state.selfInfo
+                selfInfo: this.state.selfInfo
             })
         };
         MediaUtils.sendMediaMessage({
@@ -916,20 +995,20 @@ class ChatBox extends React.Component {
             showVoiceBtn,
             currentVoice,
         } = this.state;
-        let source = {
+        const source = {
             icon_voice: require("../assets/images/icon-voice.png"),
             icon_emoji: require("../assets/images/icon-emoji.png"),
             icon_more: require("../assets/images/icon-more.png")
         }
         return (
             <View style={styles.container}>
-                <StatusBar translucent={true} backgroundColor="transparent" barStyle='dark-content'/>
+                <StatusBar translucent={true} backgroundColor="transparent" barStyle='dark-content' />
                 <TopBar
                     leftIcon="icon_back"
                     leftPress={() => this.props.navigation.goBack()}
                     title={this.state.userInfo.nickname || this.state.userInfo.username || this.info.group_name}
                     rightIcon="icon_option_black"
-                    rightBtnStyle={{width: 16, height: 8}}
+                    rightBtnStyle={{ width: 16, height: 8 }}
                     rightPress={() => {
                         this.props.navigation.navigate(this.targetId.indexOf('group') == -1 ? 'DataSetting' : 'GroupInfo', this.info)
                     }}
@@ -939,30 +1018,30 @@ class ChatBox extends React.Component {
                         {
                             this.state.selfInfo &&
                             <FlatList
-                                style={{flex: 1}}
+                                style={{ flex: 1 }}
                                 data={this.state.msgData}
                                 keyExtractor={(item, index) => index.toString()}
-                                renderItem={({item, index}) => this.ChatFrame(item, index)}
+                                renderItem={({ item, index }) => this.ChatFrame(item, index)}
                                 ref="flatList"
                                 inverted={true}
-                                // onEndReached={this.onLoadMore.bind(this)}
-                                // onEndReachedThreshold={0.1}
-                                // ListFooterComponent={this._createListFooter.bind(this)}
+                            // onEndReached={this.onLoadMore.bind(this)}
+                            // onEndReachedThreshold={0.1}
+                            // ListFooterComponent={this._createListFooter.bind(this)}
                             />
                         }
                     </View>
                     <View style={styles.bottomBar}>
                         <TouchableWithoutFeedback onPress={() => this.toggleVoiceBtn()}>
-                            <Image style={[styles.barIcon, {width: 27.3, height: 26.6}]} source={source.icon_voice}/>
+                            <Image style={[styles.barIcon, { width: 27.3, height: 26.6 }]} source={source.icon_voice} />
                         </TouchableWithoutFeedback>
                         <View style={styles.barInputContainer}>
                             {showVoiceBtn ? <View style={styles.voiceBtnWrap}>
-                                <RecordVoice callBack={(url, time) => this.sendVoiceMes(url, time)}/>
+                                <RecordVoice callBack={(url, time) => this.sendVoiceMes(url, time)} />
                             </View> : null
                             }
                             <TextInput
                                 ref={(ref) => this.msgInput = ref}
-                                onChangeText={(msgText) => this.setState({msgText})}
+                                onChangeText={msgText => this.setState({ msgText })}
                                 blurOnSubmit={false}
                                 returnKeyType="send"
                                 maxLength={99}
@@ -976,7 +1055,7 @@ class ChatBox extends React.Component {
                                                 toValue: 0,
                                                 duration: 0,
                                             }).start();
-                                            return {isShow: false}
+                                            return { isShow: false }
                                         }
                                     })
                                 }}
@@ -984,31 +1063,32 @@ class ChatBox extends React.Component {
                                 value={this.state.msgText}
                             />
                         </View>
-                        <TouchableWithoutFeedback>
-                            <Image style={styles.barIcon} source={source.icon_emoji}/>
+                        <TouchableWithoutFeedback onPress={this.showMore.bind(this, true)}>
+                            <Image style={styles.barIcon} source={source.icon_emoji} />
                         </TouchableWithoutFeedback>
-                        {!this.state.msgText ? <TouchableWithoutFeedback onPress={this.showMore.bind(this)}>
-                                <Image style={styles.barIcon} source={source.icon_more}/>
+                        {!this.state.msgText ?
+                            <TouchableWithoutFeedback onPress={this.showMore.bind(this, false)}>
+                                <Image style={styles.barIcon} source={source.icon_more} />
                             </TouchableWithoutFeedback> :
                             <TouchableOpacity onPress={() => this.sendMessage()} style={styles.subBtn}>
-                                <Text style={{color: '#fff'}}>发送</Text>
+                                <Text style={{ color: '#fff' }}>发送</Text>
                             </TouchableOpacity>}
                     </View>
-                    <Animated.View style={[styles.moreContainer, {height: this.state.animatedValue}]}>
-                        {this.getBottomOption()}
+                    <Animated.View style={[styles.moreContainer, { height: this.state.animatedValue }]}>
+                        <this.getBottomOption />
                     </Animated.View>
 
-                    <Camera ref={(camera) => this.camera = camera} callBack={(data) => data && this.takeCamera(data)}/>
+                    <Camera ref={(camera) => this.camera = camera} callBack={(data) => data && this.takeCamera(data)} />
 
 
                     {activeVideoUrl ? <VideoPlay
                         ref={(ref) => this.videoPlay = ref}
                         poster={activeposter}
-                        style={{padding: 0, margin: 0, backgroundColor: '#000'}}
-                        videoSource={{uri: activeVideoUrl}}
+                        style={{ padding: 0, margin: 0, backgroundColor: '#000' }}
+                        videoSource={{ uri: activeVideoUrl }}
                         onBackButtonPress={() => {
-                            this.setState({activeVideoUrl: null, activeposter: null})
-                        }}/> : null}
+                            this.setState({ activeVideoUrl: null, activeposter: null })
+                        }} /> : null}
 
 
                     <ViewerImageModal
@@ -1021,46 +1101,46 @@ class ChatBox extends React.Component {
                         url={currentVoice}
                     /> : null}
                     <GetRedBags ref={(ref) => this.getRedBags = ref}
-                                callBack={async () => {
-                                    const {hb_orderid, messageUId, index,} = this.state.redBagsItem;
-                                    const token = await AsyncStorage.getItem('token');
-                                    const url = '/index/redmoney/get_rm';
-                                    const isGroup = /group/.test(this.targetId);
-                                    apiRequest(url, {
-                                        method: 'post',
-                                        mode: "cors",
-                                        body: JSON.stringify({
-                                            token,
-                                            rm_orderid: hb_orderid
-                                        })
-                                    }).then(async (res) => {
-                                        console.log(res);
-                                        if (res['code'] == 200) {
-                                            const status = await this.getRedBagsStatus(token, hb_orderid);
-                                            console.log(status)
-                                            this.getRedBags.hide();
-                                            if (status) {
-                                                this.props.navigation.navigate('RedBagsDetail', {
-                                                    ...this.state.redBagsItem,
-                                                    ...status,
-                                                    self_id: this.state.selfInfo['ry_userid'],
-                                                    isGroup,
-                                                });
-                                            }
-                                            this.setState((pre) => {
-                                                const msgData = pre.msgData;
-                                                msgData[index]['redBagsCode'] = status.code;
-                                                return {msgData}
-                                            })
-                                        } else {
-                                            this.getRedBags.hide();
-                                            alert(res['msg'])
-                                        }
-                                    }, () => {
-                                        this.getRedBags.hide();
+                        callBack={async () => {
+                            const { hb_orderid, messageUId, index, } = this.state.redBagsItem;
+                            const token = await AsyncStorage.getItem('token');
+                            const url = '/index/redmoney/get_rm';
+                            const isGroup = /group/.test(this.targetId);
+                            apiRequest(url, {
+                                method: 'post',
+                                mode: "cors",
+                                body: JSON.stringify({
+                                    token,
+                                    rm_orderid: hb_orderid
+                                })
+                            }).then(async (res) => {
+                                console.log(res);
+                                if (res['code'] == 200) {
+                                    const status = await this.getRedBagsStatus(token, hb_orderid);
+                                    console.log(status)
+                                    this.getRedBags.hide();
+                                    if (status) {
+                                        this.props.navigation.navigate('RedBagsDetail', {
+                                            ...this.state.redBagsItem,
+                                            ...status,
+                                            self_id: this.state.selfInfo['ry_userid'],
+                                            isGroup,
+                                        });
+                                    }
+                                    this.setState((pre) => {
+                                        const msgData = pre.msgData;
+                                        msgData[index]['redBagsCode'] = status.code;
+                                        return { msgData }
                                     })
-                                }}
-                                redBagsItem={this.state.redBagsItem}/>
+                                } else {
+                                    this.getRedBags.hide();
+                                    alert(res['msg'])
+                                }
+                            }, () => {
+                                this.getRedBags.hide();
+                            })
+                        }}
+                        redBagsItem={this.state.redBagsItem} />
                 </SafeAreaView>
             </View>
         );
@@ -1093,7 +1173,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "space-around",
         shadowColor: '#ccc',
-        shadowOffset: {width: 0, height: 0},
+        shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.3,
         shadowRadius: 5,
         elevation: 2,
@@ -1130,8 +1210,7 @@ const styles = StyleSheet.create({
     moreOption: {
         flexWrap: "wrap",
         flexDirection: "row",
-        marginRight: 30,
-        marginLeft: 30
+        paddingHorizontal: 30
     },
     optionContainer: {
         alignItems: "center",
@@ -1166,7 +1245,11 @@ const styles = StyleSheet.create({
         paddingRight: 10,
         borderRadius: 3,
     },
-    textMes: {padding: 12, fontSize: 16, lineHeight: 21},
+    textMes: {
+        // padding: 12,
+        fontSize: 16,
+        // lineHeight: 21
+    },
     redBagsWrap: {
         width: 219,
         height: 89,

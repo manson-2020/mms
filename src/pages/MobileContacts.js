@@ -53,7 +53,6 @@ class MobileContacts extends React.Component {
                     alert('获取通讯录失败');
                     return
                 }
-                // console.log(contacts);
                 /**
                  * contactsArr电话号码数组
                  */
@@ -87,7 +86,6 @@ class MobileContacts extends React.Component {
                         }
                     })
                     this.setState({ friendList: friendList, indexArr: Array.from(new Set(this.state.indexArr)) })
-                    console.log(req.res)
                 }, e => {
                     console.log(e)
                 })
@@ -112,8 +110,6 @@ class MobileContacts extends React.Component {
                 ItemSeparatorComponent={() => <View style={styles.separtorStyle} />} // 分割线
                 ListFooterComponent={() => this.state.friendList.length ? <View style={{ height: 200 }}></View> : null} // 尾部组件
                 ListEmptyComponent={<View style={styles.noDataViewStyle}><Text style={styles.noDataSubViewStyle}>加载中。。。</Text></View>} // 没有数据时显示的组件
-            // onRefresh={this.refresh.bind(this, "friend")} // 刷新方法,写了此方法，下拉才会出现  刷新控件，使用此方法必须写 refreshing
-            // refreshing={this.state.refreshing} // 是否刷新 ，自带刷新控件
             />
             {this.state.showRightIndex && <this.sectionIndex />}
         </React.Fragment>
@@ -130,7 +126,7 @@ class MobileContacts extends React.Component {
 
             <TouchableOpacity
                 style={{ backgroundColor: info.item.type ? "#fff" : "#196FF0", borderRadius: 6 }}
-                onPress={() => console.warn(123)}
+                onPress={() => this.props.navigation.navigate("UserInfo", { userid: info.item.userid })}
             >
                 <Text style={{ marginHorizontal: 9, lineHeight: 30, textAlign: "center", color: info.item.type ? "#666" : "#fff" }}> {info.item.type ? "已添加" : "添加"}</Text>
             </TouchableOpacity>

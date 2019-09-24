@@ -229,7 +229,7 @@ const AppStack = createStackNavigator({
     Test: Test
 }, {
     headerMode: 'none',
-    initialRouteName: 'MobileContacts',
+    // initialRouteName: 'Test',
     //  headerLayoutPreset: 'center',
 });
 
