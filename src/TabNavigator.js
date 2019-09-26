@@ -90,7 +90,7 @@ const TabNavigator = createMaterialTopTabNavigator({
         }
     }
 }, {
-    initialRouteName: 'AddressBook',
+    // initialRouteName: 'AddressBook',
     swipeEnabled: true,
     animationEnabled: true,
     tabBarPosition: "bottom", //如果在顶部，就是 top

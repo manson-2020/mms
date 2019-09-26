@@ -10,7 +10,7 @@ import LoginRigisterScreen from './pages/LoginRigister';
 import TabNavigator from './TabNavigator';
 import ForgetPwdScreen from './pages/ForgetPwd';
 import ChatBoxScreen from './pages/ChatBox';
-import UserInfoScreen from './pages/UserInfo';
+import TargetInfoScreen from './pages/TargetInfo';
 import DataSettingScreen from './pages/DataSetting';
 import AddFriendScreen from './pages/AddFriend';
 import SettingScreen from './pages/Setting';
@@ -23,7 +23,7 @@ import BudgetScreen from './pages/Budget';
 import AboutScreen from './pages/About';
 import MobileContactsScreen from './pages/MobileContacts';
 import Test from './pages/Test';
-import QrScand from './common/qrScand';
+import QrScand from './common/QrScand';
 import SendRedBagsPage from './pages/RedBags/SendRedBagsPage';
 import RedBagsDetailPage from './pages/RedBags/RedBagsDetailPage';
 import SearchPage from './pages/SearchPage';
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
 const AppStack = createStackNavigator({
     TabNavigator: TabNavigator,
     ChatBox: ChatBoxScreen,
-    UserInfo: UserInfoScreen,
+    TargetInfo: TargetInfoScreen,
     DataSetting: DataSettingScreen,
     AddFriend: AddFriendScreen,
     Setting: SettingScreen,

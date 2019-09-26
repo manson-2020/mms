@@ -364,16 +364,7 @@ class Message extends React.Component {
      */
     openQrcode() {
         const { navigation } = this.props;
-        navigation.navigate('QrScand', {
-            /**
-             * 接收扫描结果
-             * @param res
-             */
-            callBack: async (res) => {
-                console.log(res);
-
-            }
-        })
+        navigation.navigate('QrScand')
     }
 
     /**
@@ -583,7 +574,6 @@ const styles = StyleSheet.create({
     },
     optionMain: {
         height: 118,
-        width: 375,
         flexDirection: 'row',
         justifyContent: "space-around",
         alignItems: "center",

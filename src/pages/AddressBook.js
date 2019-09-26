@@ -95,7 +95,7 @@ class AddressBook extends React.Component {
 
 
     renderItem = info => (
-        <TouchableOpacity onPress={() => this.props.navigation.navigate('UserInfo', { userInfo: info.item })}>
+        <TouchableOpacity onPress={() => this.props.navigation.navigate('TargetInfo', { targetInfo: info.item })}>
             <View style={styles.itemContainer}>
                 <Image source={{ uri: info.item.header_img }} style={styles.avatar} />
                 <Text style={styles.rowStyle}>

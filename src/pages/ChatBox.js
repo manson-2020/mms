@@ -54,6 +54,7 @@ class ChatBox extends React.Component {
         this.state = {
             animatedValue: new Animated.Value(0),
             isShow: false,
+            isEmoji: false,
             isLoadMore: false,
             showFoot: 1,
             selfInfo: [],
@@ -201,6 +202,7 @@ class ChatBox extends React.Component {
             "[烧香]": require("../assets/emoji/烧香.png"),
             "[受伤]": require("../assets/emoji/受伤.png"),
             "[哇哇]": require("../assets/emoji/哇哇.png"),
+            "[砖头]": require("../assets/emoji/砖头.png"),
         }
         Platform.OS == "android" && BackHandler.addEventListener('hardwareBackPress', this.onBackButtonPressAndroid);
     }
@@ -430,7 +432,7 @@ class ChatBox extends React.Component {
                     </View>
                     :
                     <View style={{ flexDirection: "row", marginBottom: 15, marginLeft: 15, marginTop: !index ? 15 : 0 }}>
-                        <TouchableWithoutFeedback onPress={() => this.props.navigation.navigate('UserInfo')}>
+                        <TouchableWithoutFeedback onPress={() => this.props.navigation.navigate('TargetInfo')}>
                             <Image
                                 style={{ width: 38, height: 38, borderRadius: 19 }}
                                 source={{
@@ -473,7 +475,7 @@ class ChatBox extends React.Component {
         if (this.state.isEmoji) {
             return (
                 <View style={styles.moreOption}>
-                    {"[囧囧],[爱意],[嘻嘻],[大哭],[瞪眼],[尴尬],[害羞],[寒冷],[悠闲],[奸笑],[惊叹],[发呆],[惊讶],[可爱],[酷酷],[流汗],[流泪],[难过],[气愤],[强势],[烧香],[受伤],[哇哇]".split(",").map((item, index) => (
+                    {"[囧囧],[爱意],[嘻嘻],[大哭],[瞪眼],[尴尬],[害羞],[寒冷],[悠闲],[奸笑],[惊叹],[发呆],[惊讶],[可爱],[酷酷],[流汗],[流泪],[难过],[气愤],[强势],[烧香],[受伤],[哇哇],[砖头]".split(",").map((item, index) => (
                         <TouchableOpacity
                             onPress={() => this.setState({ msgText: this.state.msgText + item })}
                             key={index}
@@ -482,9 +484,9 @@ class ChatBox extends React.Component {
                             <Image source={this.emoji[item]} style={{ width: 30, height: 30, marginVertical: 10, borderRadius: 15 }} />
                         </TouchableOpacity>
                     ))}
-                    <TouchableOpacity style={{ width: "12.5%", alignItems: "center", justifyContent: "center", }}>
+                    {/* <TouchableOpacity style={{ width: "12.5%", alignItems: "center", justifyContent: "center", }}>
                         <View style={{ width: 30, height: 30, backgroundColor: "#f30", marginVertical: 10, borderRadius: 15 }} />
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                 </View>
             )
         } else if (this.state.isShow) {
@@ -687,7 +689,7 @@ class ChatBox extends React.Component {
     }
 
     stringToContentArray(text) {
-        let reg = new RegExp(/\[囧囧]|\[爱意]|\[嘻嘻]|\[大哭]|\[瞪眼]|\[尴尬]|\[害羞]|\[寒冷]|\[悠闲]|\[奸笑]|\[惊叹]|\[发呆]|\[惊讶]|\[可爱]|\[酷酷]|\[流汗]|\[流泪]|\[难过]|\[气愤]|\[强势]|\[烧香]|\[受伤]|\[哇哇]/, 'g');
+        let reg = new RegExp(/\[囧囧]|\[爱意]|\[嘻嘻]|\[大哭]|\[瞪眼]|\[尴尬]|\[害羞]|\[寒冷]|\[悠闲]|\[奸笑]|\[惊叹]|\[发呆]|\[惊讶]|\[可爱]|\[酷酷]|\[流汗]|\[流泪]|\[难过]|\[气愤]|\[强势]|\[烧香]|\[受伤]|\[哇哇]|\[砖头]/, 'g');
         let contentArray = [];
         let regArray = text.match(reg);
         if (regArray === null) {
@@ -1049,12 +1051,13 @@ class ChatBox extends React.Component {
                             <Image style={[styles.barIcon, { width: 27.3, height: 26.6 }]} source={source.icon_voice} />
                         </TouchableWithoutFeedback>
                         <View style={styles.barInputContainer}>
-                            {showVoiceBtn ? <View style={styles.voiceBtnWrap}>
-                                <RecordVoice callBack={(url, time) => this.sendVoiceMes(url, time)} />
-                            </View> : null
+                            {showVoiceBtn && (
+                                <View style={styles.voiceBtnWrap}>
+                                    <RecordVoice callBack={(url, time) => this.sendVoiceMes(url, time)} />
+                                </View>)
                             }
                             <TextInput
-                                ref={(ref) => this.msgInput = ref}
+                                ref={ref => this.msgInput = ref}
                                 onChangeText={msgText => this.setState({ msgText })}
                                 blurOnSubmit={false}
                                 returnKeyType="send"
@@ -1063,13 +1066,13 @@ class ChatBox extends React.Component {
                                 iosreturnKeyType="send"
                                 style={styles.barInput}
                                 onFocus={() => {
-                                    this.setState((pre) => {
-                                        if (pre.isShow) {
+                                    this.setState(pre => {
+                                        if (pre.isShow || pre.isEmoji) {
                                             Animated.timing(this.state.animatedValue, {
                                                 toValue: 0,
                                                 duration: 0,
                                             }).start();
-                                            return { isShow: false }
+                                            return { isShow: false, isEmoji: false }
                                         }
                                     })
                                 }}

@@ -19,22 +19,11 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const { height, width } = Dimensions.get('window');
 
-const PendingView = () => (
-    <View
-        style={{
-            flex: 1,
-            backgroundColor: 'lightgreen',
-            justifyContent: 'center',
-            alignItems: 'center',
-        }}
-    >
-        <Text>Waiting</Text>
-    </View>
-);
-class qrScand extends Component {
+class QrScand extends Component {
     //初始参数
     constructor(props) {
         super(props);
+        this.flag = false;
         this.state = {
             show: true,
             animation: new Animated.Value(0),
@@ -52,7 +41,8 @@ class qrScand extends Component {
     componentWillUnMount() {
         this.setState({
             show: false
-        })
+        });
+        this.flag = false
     }
 
     //启动动画
@@ -129,18 +119,17 @@ class qrScand extends Component {
 
     barcodeReceived(e) {
         if (e) {
-            const callBack = this.props.navigation.getParam('callBack');
-            this.setState({
-                show: false
-            });
-            callBack && callBack(e);
+            if (this.flag) return;
+            //e.data.indexOf("group")返回0表示群组，返回-1表示用户
+            this.props.navigation.navigate("TargetInfo", { targetInfo: !e.data.indexOf("group") ? { groupid: e.data } : { userid: e.data } });
+            this.flag = true;
         } else {
             alert('扫描失败,对准二维码继续扫描')
         }
     }
 }
 
-export default qrScand;
+export default QrScand;
 const styles = StyleSheet.create({
     scanHeader: {
         flexDirection: 'row',
