@@ -8,16 +8,14 @@ import {
     TextInput,
     TouchableWithoutFeedback,
     TouchableOpacity,
-    TouchableHighlight,
     StatusBar,
     FlatList,
     Animated,
     ActivityIndicator,
-    PermissionsAndroid,
     Keyboard,
     Dimensions,
-    DeviceEventEmitter,
-    Vibration,
+    Platform,
+    BackHandler
 } from 'react-native';
 import TopBar from './components/TopBar';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -179,6 +177,41 @@ class ChatBox extends React.Component {
             }
         ];
 
+        this.emoji = {
+            "[囧囧]": require("../assets/emoji/囧囧.png"),
+            "[爱意]": require("../assets/emoji/爱意.png"),
+            "[嘻嘻]": require("../assets/emoji/嘻嘻.png"),
+            "[大哭]": require("../assets/emoji/大哭.png"),
+            "[瞪眼]": require("../assets/emoji/瞪眼.png"),
+            "[尴尬]": require("../assets/emoji/尴尬.png"),
+            "[害羞]": require("../assets/emoji/害羞.png"),
+            "[寒冷]": require("../assets/emoji/寒冷.png"),
+            "[悠闲]": require("../assets/emoji/悠闲.png"),
+            "[奸笑]": require("../assets/emoji/奸笑.png"),
+            "[惊叹]": require("../assets/emoji/惊叹.png"),
+            "[发呆]": require("../assets/emoji/发呆.png"),
+            "[惊讶]": require("../assets/emoji/惊讶.png"),
+            "[可爱]": require("../assets/emoji/可爱.png"),
+            "[酷酷]": require("../assets/emoji/酷酷.png"),
+            "[流汗]": require("../assets/emoji/流汗.png"),
+            "[流泪]": require("../assets/emoji/流泪.png"),
+            "[难过]": require("../assets/emoji/难过.png"),
+            "[气愤]": require("../assets/emoji/气愤.png"),
+            "[强势]": require("../assets/emoji/强势.png"),
+            "[烧香]": require("../assets/emoji/烧香.png"),
+            "[受伤]": require("../assets/emoji/受伤.png"),
+            "[哇哇]": require("../assets/emoji/哇哇.png"),
+        }
+        Platform.OS == "android" && BackHandler.addEventListener('hardwareBackPress', this.onBackButtonPressAndroid);
+    }
+
+    onBackButtonPressAndroid = () => {
+        this.props.navigation.navigate("AuthLoading")
+        return true; //返回true, 不执行系统操作。
+    }
+
+    componentWillUnmount() {
+        Platform.OS == "android" && BackHandler.removeEventListener('hardwareBackPress', this.onBackButtonPressAndroid)
     }
 
     componentWillMount() {
@@ -250,11 +283,9 @@ class ChatBox extends React.Component {
                         userid: this.targetId,
                     })
                 }).then(req => {
-                    console.log('userInfo', req.res)
                     this.setState({ userInfo: req.res }, () => {
                         getHistoryMessages(ConversationType.PRIVATE, this.targetId, [ObjectName.Text, ObjectName.Image, ObjectName.File], 0, 30)
                             .then(async result => {
-                                console.log(result)
                                 const status = await this.setStatusRedBags(result, value[0][1]);
                                 status.forEach((itemStatus) => {
                                     const { index, code } = itemStatus;
@@ -384,7 +415,7 @@ class ChatBox extends React.Component {
                                 </Text>
                             }
                             <View style={{
-                                backgroundColor: "#196FF0",
+                                backgroundColor: "#5889e9",
                                 maxWidth: 220,
                                 marginRight: 10,
                                 borderRadius: 5
@@ -442,13 +473,14 @@ class ChatBox extends React.Component {
         if (this.state.isEmoji) {
             return (
                 <View style={styles.moreOption}>
-                    {"[Smile],[Grimace],[Drool],[Scowl],[CoolGuy],[Sob],[Shy],[Silent],[Sleep],[Cry],[Awkward],[Angry],[Tongue],[Grin],[Surprise],[Frown],[Blush],[Scream],[Puke],[Chuckle],[Joyful],[Slight],[Smug]".split(",").map((item, index) => (
+
+                    {"[囧囧],[爱意],[嘻嘻],[大哭],[瞪眼],[尴尬],[害羞],[寒冷],[悠闲],[奸笑],[惊叹],[发呆],[惊讶],[可爱],[酷酷],[流汗],[流泪],[难过],[气愤],[强势],[烧香],[受伤],[哇哇]".split(",").map((item, index) => (
                         <TouchableOpacity
                             onPress={() => this.setState({ msgText: this.state.msgText + item })}
                             key={index}
                             style={{ width: "12.5%", alignItems: "center", justifyContent: "center" }}
                         >
-                            <View style={{ width: 30, height: 30, backgroundColor: "#8f71ff", marginVertical: 10, borderRadius: 15 }} />
+                            <Image source={this.emoji[item]} style={{ width: 30, height: 30, marginVertical: 10, borderRadius: 15 }} />
                         </TouchableOpacity>
                     ))}
                     <TouchableOpacity style={{ width: "12.5%", alignItems: "center", justifyContent: "center", }}>
@@ -626,7 +658,6 @@ class ChatBox extends React.Component {
         }
         if (redBagsCode == 200) {
             this.setState((pre) => {
-                console.log('redBagsCode', redBagsCode);
                 const redBagsItem = isGroup ? { ...pre.groupListInfo[senderUserId] } : { ...pre.userInfo };
 
                 return {
@@ -645,7 +676,6 @@ class ChatBox extends React.Component {
         } else {
             const redBagsItem = isGroup ? { ...this.state.groupListInfo[senderUserId] } : { ...this.state.userInfo };
             const selfStatus = await this.getRedBagsStatus(token, JSON.parse(extra)['hb_orderid']);
-            console.log('senderUserId', senderUserId)
             if (selfStatus) {
                 this.props.navigation.navigate('RedBagsDetail', {
                     ...redBagsItem,
@@ -659,11 +689,11 @@ class ChatBox extends React.Component {
     }
 
     stringToContentArray(text) {
-        let reg = new RegExp(/\[ww]|\[微笑]/, 'g');
+        let reg = new RegExp(/\[囧囧]|\[爱意]|\[嘻嘻]|\[大哭]|\[瞪眼]|\[尴尬]|\[害羞]|\[寒冷]|\[悠闲]|\[奸笑]|\[惊叹]|\[发呆]|\[惊讶]|\[可爱]|\[酷酷]|\[流汗]|\[流泪]|\[难过]|\[气愤]|\[强势]|\[烧香]|\[受伤]|\[哇哇]/, 'g');
         let contentArray = [];
         let regArray = text.match(reg);
         if (regArray === null) {
-            contentArray.push({ "content": text });
+            contentArray.push({ "text": text });
             return contentArray;
         }
         let indexArray = [];
@@ -683,7 +713,6 @@ class ChatBox extends React.Component {
             result.push({ emoji: text.substring(item, item + 4) });
             result.push({ text: text.substring(item + 4, indexArray[index + 1]) });
         })
-
         return result;
     }
 
@@ -713,31 +742,19 @@ class ChatBox extends React.Component {
                     </TouchableOpacity>
                 )
             } else {
-                let emoji = {
-                    "[微笑]": require("../assets/emoji/ww.png"),
-                    "[ww]": require("../assets/emoji/ww.png")
-                }
                 return (
                     <View style={{ flexDirection: "row", alignItems: "center", padding: 12, flexWrap: "wrap" }}>
                         {
                             this.stringToContentArray(content).map((item, index) => {
-                                if (item.text || item.content) {
-                                    return <Text style={{ fontSize: 16, color: isSelf ? '#fff' : '#333' }} key={index}>{item.text || item.content}</Text>
-                                } else {
-                                    return <Image key={index} source={emoji[item.emoji]} style={{ width: 20, height: 20 }} />
+                                if (item.text) {
+                                    return <Text style={{ fontSize: 16, color: isSelf ? '#fff' : '#333' }} key={index}>{item.text}</Text>
+                                } else if (item.emoji) {
+                                    return <Image key={index} source={this.emoji[item.emoji]} style={{ width: 20, height: 20, marginHorizontal: 3 }} />
                                 }
                             })
                         }
                     </View>
                 );
-
-
-                // return (
-                //     <View style={{ flexDirection: "row", flexWrap: "wrap", }}>
-                //         {/* <Image source={require('../assets/images/ab0_icon.png')} style={{ width: 30, height: 30, borderRadius: 15 }} /> */}
-                //         <Text style={[styles.textMes, { color: isSelf ? '#fff' : '#333' }]}>{content}</Text>
-                //     </View>
-                // )
             }
         } catch (e) {
             return null
@@ -975,7 +992,6 @@ class ChatBox extends React.Component {
                     senderUserId: this.state.selfInfo.ry_userid,
                     conversationType: this.conversationType
                 };
-                console.log(nmes)
                 this.setState((pre) => ({
                     msgData: [nmes, ...pre.msgData],
                 }));
@@ -1005,7 +1021,7 @@ class ChatBox extends React.Component {
                 <StatusBar translucent={true} backgroundColor="transparent" barStyle='dark-content' />
                 <TopBar
                     leftIcon="icon_back"
-                    leftPress={() => this.props.navigation.goBack()}
+                    leftPress={() => this.props.navigation.navigate("AuthLoading")}
                     title={this.state.userInfo.nickname || this.state.userInfo.username || this.info.group_name}
                     rightIcon="icon_option_black"
                     rightBtnStyle={{ width: 16, height: 8 }}
