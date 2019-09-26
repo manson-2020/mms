@@ -473,7 +473,6 @@ class ChatBox extends React.Component {
         if (this.state.isEmoji) {
             return (
                 <View style={styles.moreOption}>
-
                     {"[囧囧],[爱意],[嘻嘻],[大哭],[瞪眼],[尴尬],[害羞],[寒冷],[悠闲],[奸笑],[惊叹],[发呆],[惊讶],[可爱],[酷酷],[流汗],[流泪],[难过],[气愤],[强势],[烧香],[受伤],[哇哇]".split(",").map((item, index) => (
                         <TouchableOpacity
                             onPress={() => this.setState({ msgText: this.state.msgText + item })}
@@ -522,7 +521,6 @@ class ChatBox extends React.Component {
             Animated.timing(this.state.animatedValue, { toValue: !(this.state.isShow || this.state.isEmoji) ? 0 : 215, duration: 200, }).start();
         })
     }
-
 
 
     sendMessage() {
