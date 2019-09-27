@@ -84,7 +84,7 @@ class MobileContacts extends React.Component {
                         if (item.data.length) {
                             this.state.indexArr.push(item.key)
                         }
-                    })
+                    });
                     this.setState({ friendList: friendList, indexArr: Array.from(new Set(this.state.indexArr)) })
                 }, e => {
                     console.log(e)
@@ -126,7 +126,7 @@ class MobileContacts extends React.Component {
 
             <TouchableOpacity
                 style={{ backgroundColor: info.item.type ? "#fff" : "#196FF0", borderRadius: 6 }}
-                onPress={() => this.props.navigation.navigate("TargetInfo", { userid: info.item.userid })}
+                onPress={() => this.props.navigation.navigate("TargetInfo", { targetInfo: { userid: info.item.userid } })}
             >
                 <Text style={{ marginHorizontal: 9, lineHeight: 30, textAlign: "center", color: info.item.type ? "#666" : "#fff" }}> {info.item.type ? "已添加" : "添加"}</Text>
             </TouchableOpacity>

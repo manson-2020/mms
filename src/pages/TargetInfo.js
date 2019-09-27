@@ -28,7 +28,7 @@ class TargetInfo extends React.Component {
     }
 
     componentWillMount() {
-        this.dataRequest(this.targetInfo.userid ? "getUserInfo" : "getGroupInfo");
+        this.dataRequest(this.targetInfo.userid || this.targetInfo.ry_userid ? "getUserInfo" : "getGroupInfo");
     }
 
     async dataRequest(params) {
@@ -141,7 +141,7 @@ class TargetInfo extends React.Component {
                     <View style={styles.deviceContainer}>
 
                         <View style={styles.main}>
-                            {this.targetInfo.userid ?
+                            {this.targetInfo.userid || this.targetInfo.ry_userid ?
                                 <View style={{ flexDirection: "row", marginTop: 56, alignItems: "flex-end" }}>
                                     {/* 头像 */}
                                     <Image style={styles.avatar} source={{ uri: this.state.userInfo.header_img }} />

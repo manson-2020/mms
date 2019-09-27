@@ -64,7 +64,7 @@ class AddFriend extends React.Component {
                         if (result.code == 401) {
                             alert(result.msg)
                         } else {
-                            this.props.navigation.navigate("TargetInfo", { userInfo: result.res })
+                            this.props.navigation.navigate("TargetInfo", { targetInfo: result.res })
                         }
                     });
                     break;
@@ -116,7 +116,7 @@ class AddFriend extends React.Component {
     }
 
     newFriendList = (item, index) => (
-        <TouchableOpacity onPress={() => this.props.navigation.navigate("TargetInfo", { userInfo: item })}>
+        <TouchableOpacity onPress={() => this.props.navigation.navigate("TargetInfo", { targetInfo: item })}>
             <View style={styles.optionContainer}>
                 <View style={styles.optionWrapper}>
                     <Image style={styles.avatar} source={{ uri: item.header_img }} />

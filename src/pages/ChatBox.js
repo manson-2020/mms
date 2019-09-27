@@ -179,30 +179,30 @@ class ChatBox extends React.Component {
         ];
 
         this.emoji = {
-            "[囧囧]": require("../assets/emoji/囧囧.png"),
-            "[爱意]": require("../assets/emoji/爱意.png"),
-            "[嘻嘻]": require("../assets/emoji/嘻嘻.png"),
-            "[大哭]": require("../assets/emoji/大哭.png"),
-            "[瞪眼]": require("../assets/emoji/瞪眼.png"),
-            "[尴尬]": require("../assets/emoji/尴尬.png"),
-            "[害羞]": require("../assets/emoji/害羞.png"),
-            "[寒冷]": require("../assets/emoji/寒冷.png"),
-            "[悠闲]": require("../assets/emoji/悠闲.png"),
-            "[奸笑]": require("../assets/emoji/奸笑.png"),
-            "[惊叹]": require("../assets/emoji/惊叹.png"),
-            "[发呆]": require("../assets/emoji/发呆.png"),
-            "[惊讶]": require("../assets/emoji/惊讶.png"),
-            "[可爱]": require("../assets/emoji/可爱.png"),
-            "[酷酷]": require("../assets/emoji/酷酷.png"),
-            "[流汗]": require("../assets/emoji/流汗.png"),
-            "[流泪]": require("../assets/emoji/流泪.png"),
-            "[难过]": require("../assets/emoji/难过.png"),
-            "[气愤]": require("../assets/emoji/气愤.png"),
-            "[强势]": require("../assets/emoji/强势.png"),
-            "[烧香]": require("../assets/emoji/烧香.png"),
-            "[受伤]": require("../assets/emoji/受伤.png"),
-            "[哇哇]": require("../assets/emoji/哇哇.png"),
-            "[砖头]": require("../assets/emoji/砖头.png"),
+            "[qq]": require("../assets/emoji/qq.png"),
+            "[ay]": require("../assets/emoji/ay.png"),
+            "[xx]": require("../assets/emoji/xx.png"),
+            "[dk]": require("../assets/emoji/dk.png"),
+            "[dy]": require("../assets/emoji/dy.png"),
+            "[gg]": require("../assets/emoji/gg.png"),
+            "[hx]": require("../assets/emoji/hx.png"),
+            "[bl]": require("../assets/emoji/bl.png"),
+            "[yx]": require("../assets/emoji/yx.png"),
+            "[jx]": require("../assets/emoji/jx.png"),
+            "[jt]": require("../assets/emoji/jt.png"),
+            "[fd]": require("../assets/emoji/fd.png"),
+            "[jy]": require("../assets/emoji/jy.png"),
+            "[ka]": require("../assets/emoji/ka.png"),
+            "[kk]": require("../assets/emoji/kk.png"),
+            "[lh]": require("../assets/emoji/lh.png"),
+            "[ll]": require("../assets/emoji/ll.png"),
+            "[ng]": require("../assets/emoji/ng.png"),
+            "[qf]": require("../assets/emoji/qf.png"),
+            "[qs]": require("../assets/emoji/qs.png"),
+            "[sx]": require("../assets/emoji/sx.png"),
+            "[ss]": require("../assets/emoji/ss.png"),
+            "[zt]": require("../assets/emoji/zt.png"),
+            "[ww]": require("../assets/emoji/ww.png"),
         }
         Platform.OS == "android" && BackHandler.addEventListener('hardwareBackPress', this.onBackButtonPressAndroid);
     }
@@ -432,7 +432,7 @@ class ChatBox extends React.Component {
                     </View>
                     :
                     <View style={{ flexDirection: "row", marginBottom: 15, marginLeft: 15, marginTop: !index ? 15 : 0 }}>
-                        <TouchableWithoutFeedback onPress={() => this.props.navigation.navigate('TargetInfo')}>
+                        <TouchableWithoutFeedback onPress={() => this.props.navigation.navigate('TargetInfo', { targetInfo: { userid: item.senderUserId } })}>
                             <Image
                                 style={{ width: 38, height: 38, borderRadius: 19 }}
                                 source={{
@@ -475,7 +475,7 @@ class ChatBox extends React.Component {
         if (this.state.isEmoji) {
             return (
                 <View style={styles.moreOption}>
-                    {"[囧囧],[爱意],[嘻嘻],[大哭],[瞪眼],[尴尬],[害羞],[寒冷],[悠闲],[奸笑],[惊叹],[发呆],[惊讶],[可爱],[酷酷],[流汗],[流泪],[难过],[气愤],[强势],[烧香],[受伤],[哇哇],[砖头]".split(",").map((item, index) => (
+                    {"[qq],[ay],[xx],[dk],[dy],[gg],[hx],[bl],[yx],[jx],[jt],[fd],[jy],[ka],[kk],[lh],[ll],[ng],[qf],[qs],[sx],[ss],[ww],[zt]".split(",").map((item, index) => (
                         <TouchableOpacity
                             onPress={() => this.setState({ msgText: this.state.msgText + item })}
                             key={index}
@@ -689,7 +689,7 @@ class ChatBox extends React.Component {
     }
 
     stringToContentArray(text) {
-        let reg = new RegExp(/\[囧囧]|\[爱意]|\[嘻嘻]|\[大哭]|\[瞪眼]|\[尴尬]|\[害羞]|\[寒冷]|\[悠闲]|\[奸笑]|\[惊叹]|\[发呆]|\[惊讶]|\[可爱]|\[酷酷]|\[流汗]|\[流泪]|\[难过]|\[气愤]|\[强势]|\[烧香]|\[受伤]|\[哇哇]|\[砖头]/, 'g');
+        let reg = new RegExp(/\[qq]|\[ay]|\[xx]|\[dk]|\[dy]|\[gg]|\[hx]|\[bl]|\[yx]|\[jx]|\[jt]|\[fd]|\[jy]|\[ka]|\[kk]|\[lh]|\[ll]|\[ng]|\[qf]|\[qs]|\[sx]|\[ss]|\[ww]|\[zt]/, 'g');
         let contentArray = [];
         let regArray = text.match(reg);
         if (regArray === null) {

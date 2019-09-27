@@ -6542,7 +6542,7 @@ react-native-cli@^2.0.1:
     prompt "^0.2.14"
     semver "^5.0.3"
 
-react-native-contacts@4.0.2:
+react-native-contacts@^4.0.2:
   version "4.0.2"
   resolved "https://registry.npm.taobao.org/react-native-contacts/download/react-native-contacts-4.0.2.tgz#edcdf7f2e2fd1b18cfd5fe9eb40161ab73632ec5"
   integrity sha1-7c338uL9GxjP1f6etAFhq3NjLsU=
@@ -8395,7 +8395,7 @@ widest-line@^2.0.0:
 
 winston@0.8.x:
   version "0.8.3"
-  resolved "https://registry.npm.taobao.org/winston/download/winston-0.8.3.tgz?cache=0&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fwinston%2Fdownload%2Fwinston-0.8.3.tgz#64b6abf4cd01adcaefd5009393b1d8e8bec19db0"
+  resolved "https://registry.npm.taobao.org/winston/download/winston-0.8.3.tgz#64b6abf4cd01adcaefd5009393b1d8e8bec19db0"
   integrity sha1-ZLar9M0Brcrv1QCTk7HY6L7BnbA=
   dependencies:
     async "0.2.x"

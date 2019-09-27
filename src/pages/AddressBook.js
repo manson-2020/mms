@@ -8,7 +8,7 @@ const headerHeight = 38;    //每一组数据的头部高度
 const rowHeight = 58;   // 一行内容的高度
 const separatorHeight = 1;  //边框线
 const bottomBar = 70;   //底部bar高度
-const searchHeight = 50;   //底部bar高度
+const searchHeight = 50;  
 
 class AddressBook extends React.Component {
     constructor(props) {
