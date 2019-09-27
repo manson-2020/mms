@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from 'react';
+import React from 'react';
 import {
     View,
     Text,
@@ -6,20 +6,17 @@ import {
     Animated,
     Easing,
     Image,
-    Alert,
-    Vibration,
     Dimensions,
+    BackHandler,
     Platform,
-    SafeAreaView,
-    TouchableOpacity,
-    StatusBar
+    TouchableOpacity
 } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const { height, width } = Dimensions.get('window');
 
-class QrScand extends Component {
+class QrScand extends React.Component {
     //初始参数
     constructor(props) {
         super(props);
@@ -30,6 +27,7 @@ class QrScand extends Component {
             tabAnimation: new Animated.Value(0),
             isLight: false
         };
+        Platform.OS == "android" && BackHandler.addEventListener('hardwareBackPress', this.goBack);
     }
 
     //组件加载完成执行
@@ -42,7 +40,8 @@ class QrScand extends Component {
         this.setState({
             show: false
         });
-        this.flag = false
+        this.flag = false;
+        Platform.OS == "android" && BackHandler.removeEventListener('hardwareBackPress', this.goBack)
     }
 
     //启动动画
@@ -57,64 +56,67 @@ class QrScand extends Component {
         }
     }
 
+    goBack = () => {
+        const { getParam, goBack } = this.props.navigation;
+        getParam("refresh") && getParam("refresh")();
+        goBack(getParam("key"));
+        return true;
+    }
+
     render() {
-
-        return <View style={[styles.container, { position: 'relative' }]}>
-            <RNCamera
-                style={styles.preview}
-                type={RNCamera.Constants.Type.back}
-                barCodeTypes={[RNCamera.Constants.BarCodeType.qr]}//android
-                googleVisionBarcodeType={RNCamera.Constants.GoogleVisionBarcodeDetection.BarcodeType.QR_CODE}//ios
-                flashMode={this.state.isLight ? RNCamera.Constants.FlashMode.torch : RNCamera.Constants.FlashMode.off}
-                onBarCodeRead={(e) => this.barcodeReceived(e)}>
-                {({ camera, status, recordAudioPermissionStatus }) => {
-                    // if (status !== 'READY') return <PendingView />;
-                    return <Fragment>
-                        <View style={styles.topWrap}>
-                            <View style={styles.scanHeader}>
-                                <TouchableOpacity style={styles.leftButton}
-                                    onPress={() => this.props.navigation.goBack()}>
-                                    <Ionicons
-                                        name={'ios-arrow-back'}
-                                        size={26}
-                                        style={{ color: 'white' }} />
-                                </TouchableOpacity>
-                                <Text style={styles.txtTitle}>二维码扫描</Text>
-                                <TouchableOpacity onPress={() => {
-                                    this.setState({
-                                        isLight: !this.state.isLight
-                                    })
-                                }}>
-                                    <Ionicons
-                                        name={!this.state.isLight ? 'ios-flash-off' : 'ios-flash'}
-                                        size={26}
-                                        style={{ color: 'white', padding: 10, }} />
-                                </TouchableOpacity>
-
-                            </View>
-                            <Text style={styles.textStyle}>将二维码放入框内，即可自动扫描</Text>
-                        </View>
-                        <View style={styles.rectangleLayout}>
-                            <View style={styles.rectangle}>
-                                <Image style={[styles.rectangle, { position: 'absolute', left: 0, top: 0 }]}
-                                    source={require('../assets/img/icon_scan_rect.png')} />
-                                <Animated.View style={[styles.animatedStyle, {
-                                    transform: [{
-                                        translateY: this.state.animation.interpolate({
-                                            inputRange: [0, 1],
-                                            outputRange: [0, 200]
+        return (
+            <View style={[styles.container, { position: 'relative' }]}>
+                <RNCamera
+                    style={styles.preview}
+                    type={RNCamera.Constants.Type.back}
+                    barCodeTypes={[RNCamera.Constants.BarCodeType.qr]}//android
+                    googleVisionBarcodeType={RNCamera.Constants.GoogleVisionBarcodeDetection.BarcodeType.QR_CODE}//ios
+                    flashMode={this.state.isLight ? RNCamera.Constants.FlashMode.torch : RNCamera.Constants.FlashMode.off}
+                    onBarCodeRead={(e) => this.barcodeReceived(e)}>
+                    {({ camera, status, recordAudioPermissionStatus }) => (
+                        <View style={{ flex: 1 }}>
+                            <View style={styles.topWrap}>
+                                <View style={styles.scanHeader}>
+                                    <TouchableOpacity style={styles.leftButton} onPress={() => this.goBack()} >
+                                        <Ionicons
+                                            name={'ios-arrow-back'}
+                                            size={26}
+                                            style={{ color: 'white' }} />
+                                    </TouchableOpacity>
+                                    <Text style={styles.txtTitle}>二维码扫描</Text>
+                                    <TouchableOpacity onPress={() => {
+                                        this.setState({
+                                            isLight: !this.state.isLight
                                         })
-                                    }]
-                                }]} />
+                                    }}>
+                                        <Ionicons
+                                            name={!this.state.isLight ? 'ios-flash-off' : 'ios-flash'}
+                                            size={26}
+                                            style={{ color: 'white', padding: 10, }} />
+                                    </TouchableOpacity>
+
+                                </View>
+                                <Text style={styles.textStyle}>将二维码放入框内，即可自动扫描</Text>
+                            </View>
+                            <View style={styles.rectangleLayout}>
+                                <View style={styles.rectangle}>
+                                    <Image style={[styles.rectangle, { position: 'absolute', left: 0, top: 0 }]}
+                                        source={require('../assets/img/icon_scan_rect.png')} />
+                                    <Animated.View style={[styles.animatedStyle, {
+                                        transform: [{
+                                            translateY: this.state.animation.interpolate({
+                                                inputRange: [0, 1],
+                                                outputRange: [0, 200]
+                                            })
+                                        }]
+                                    }]} />
+                                </View>
                             </View>
                         </View>
-                    </Fragment>
-                }
-                }
-            </RNCamera>
-        </View>
-
-
+                    )}
+                </RNCamera>
+            </View>
+        )
     }
 
     barcodeReceived(e) {

@@ -1018,11 +1018,7 @@ class ChatBox extends React.Component {
                 <StatusBar translucent={true} backgroundColor="transparent" barStyle='dark-content' />
                 <TopBar
                     leftIcon="icon_back"
-                    leftPress={() => {
-                        const { getParam, goBack } = this.props.navigation;
-                        getParam("refresh") && getParam("refresh")();
-                        goBack(getParam("key"));
-                    }}
+                    leftPress={() => this.onBackButtonPressAndroid()}
                     title={this.state.userInfo.nickname || this.state.userInfo.username || this.info.group_name}
                     rightIcon="icon_option_black"
                     rightBtnStyle={{ width: 16, height: 8 }}

@@ -40,7 +40,7 @@ class Message extends React.Component {
             fadeAnim: new Animated.Value(0),
             inputState: true,
             refreshing: false,
-            showOption: true,
+            showOption: false,
             showInput: false,
             flatlistHeight: 0,
             searchValue: false,

@@ -24,10 +24,13 @@ class TargetInfo extends React.Component {
 
     goBack = () => {
         const { getParam, goBack } = this.props.navigation;
-        // console.warn(getParam("key"));
-        getParam("key") && getParam("refresh")();
+        getParam("refresh") && getParam("refresh")();
         goBack(getParam("key"));
         return true;
+    }
+
+    componentWillUnmount() {
+        Platform.OS == "android" && BackHandler.removeEventListener('hardwareBackPress', this.goBack)
     }
 
     componentWillMount() {
