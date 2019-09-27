@@ -149,6 +149,7 @@ class FriendList extends React.Component {
             }
         });
     }
+    
 
     Search = () => (
         <View style={styles.searchContainer}>
