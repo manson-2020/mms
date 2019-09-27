@@ -250,7 +250,7 @@ class FriendList extends React.Component {
             // 默认跳转到 第 index 个section  的第 1 个 item
             this.friendList.scrollToLocation({ animated: true, itemIndex: 0, sectionIndex: index });
         }
-    }
+    } 
 
     sectionIndex = () => (
         <View style={styles.sectionItemViewStyle}
