@@ -336,18 +336,6 @@ const styles = StyleSheet.create({
         marginLeft: 15,
         borderRadius: 19
     },
-    checkBox: {
-        width: 16,
-        height: 16,
-        borderRadius: 8,
-        marginLeft: 20,
-        alignItems: "center",
-        justifyContent: "center"
-    },
-    icon_checked: {
-        width: 10,
-        height: 8
-    },
     rightBtnStyle: {
         color: "#fff",
         lineHeight: 30,

@@ -5,6 +5,7 @@ import TopBar from './components/TopBar';
 
 const { width, height } = Dimensions.get('window');
 const statusHeight = 20;
+const searchHeight = 54;
 const headerHeight = 38;
 const rowHeight = 58;
 const separatorHeight = 1;
@@ -21,6 +22,9 @@ class FriendList extends React.Component {
             searchValue: false,
             index: null,
             isTouchDown: false,
+            indexArr: [],
+            titleHeight: 0,
+            indexContainerHeight: 0,
         };
         this.selectUserData;
         this.group_userid = String();
@@ -57,9 +61,17 @@ class FriendList extends React.Component {
                                 })
                             });
                         }
+
+                        let friendList = dataGroup(result.res);
+                        friendList.map(item => {
+                            if (item.data.length) {
+                                this.state.indexArr.push(item.key)
+                            }
+                        });
                         this.setState({
-                            friendList: dataGroup(result.res),
-                            selectUser: this.state.selectUser
+                            friendList,
+                            selectUser: this.state.selectUser,
+                            indexArr: Array.from(new Set(this.state.indexArr))
                         });
                     }).catch(error => console.log(error));
                     break;
@@ -149,7 +161,6 @@ class FriendList extends React.Component {
             }
         });
     }
-    
 
     Search = () => (
         <View style={styles.searchContainer}>
@@ -239,40 +250,59 @@ class FriendList extends React.Component {
         )
     }
 
-    /*手指滑动，触发事件*/
+    // 处理事件
     scrollSectionList = event => {
         const touch = event.nativeEvent.touches[0];
-        if (touch.pageY >= ((height - sectionHeight) / 2 - statusHeight) && touch.pageY <= (height - sectionHeight) / 2 + sectionHeight) {
+        this.setState({ isTouchDown: true })
+        //索引框到搜索框的距离
+        let si = (height - (this.state.titleHeight + searchHeight + 9 + this.state.indexContainerHeight)) / 2;
+        //计算从索引容器顶部坐标和底部坐标的位置
+        if (touch.pageY >= (si + this.state.titleHeight + searchHeight + 9) && touch.pageY <= (si + this.state.titleHeight + searchHeight + 9 + this.state.indexContainerHeight)) {
             //touch.pageY 从顶部开始，包括导航条 iOS 如此，如果是android 则具体判断
-            const index = parseInt((touch.pageY + 20 - (height - sectionHeight) / 2) / (sectionHeight / 9));
+            const index = parseInt((touch.pageY - (si + this.state.titleHeight + searchHeight + 9)) / (this.state.indexContainerHeight / this.state.indexArr.length));
+            //让对应索引框内的索引值高亮
             this.setState({
                 index: index
             });
             // 默认跳转到 第 index 个section  的第 1 个 item
             this.friendList.scrollToLocation({ animated: true, itemIndex: 0, sectionIndex: index });
+        } else {
+            this.setState({ isTouchDown: false })
         }
-    } 
+    }
 
+    //侧边索引
     sectionIndex = () => (
-        <View style={styles.sectionItemViewStyle}
-            ref={sectionIndexView => this.sectionIndexView = sectionIndexView}
-            onStartShouldSetResponder={() => true} // 在用户开始触摸的时候（手指刚刚接触屏幕的瞬间），是否愿意成为响应者？
-            onMoveShouldSetResponder={() => true} // :如果View不是响应者，那么在每一个触摸点开始移动（没有停下也没有离开屏幕）时再询问一次：是否愿意响应触摸交互呢？
-            onResponderGrant={event => { this.scrollSectionList(event); this.setState({ isTouchDown: true }) }} // View现在要开始响应触摸事件了。这也是需要做高亮的时候，使用户知道他到底点到了哪里
-            onResponderMove={event => { this.scrollSectionList(event); this.setState({ isTouchDown: true }); }} // 用户正在屏幕上移动手指时（没有停下也没有离开屏幕）
-            onResponderRelease={event => this.setState({ isTouchDown: false })} // 触摸操作结束时触发，比如"touchUp"（手指抬起离开屏幕）
-        >
+        <React.Fragment>
+            <View style={styles.sectionItemViewStyle}
+                onLayout={e => this.setState({ indexContainerHeight: e.nativeEvent.layout.height })}
+                ref={sectionIndexView => this.sectionIndexView = sectionIndexView}
+                onStartShouldSetResponder={() => true} // 在用户开始触摸的时候（手指刚刚接触屏幕的瞬间），是否愿意成为响应者？
+                onMoveShouldSetResponder={() => true} // 如果View不是响应者，那么在每一个触摸点开始移动（没有停下也没有离开屏幕）时再询问一次：是否愿意响应触摸交互呢？
+                onResponderGrant={event => { this.scrollSectionList(event) }} // View现在要开始响应触摸事件了。这也是需要做高亮的时候，使用户知道他到底点到了哪里
+                onResponderMove={event => { this.scrollSectionList(event) }} // 用户正在屏幕上移动手指时（没有停下也没有离开屏幕）
+                onResponderRelease={event => {
+                    this.friendList.scrollToLocation({ animated: true, itemIndex: 0, sectionIndex: this.state.index });
+                    this.setState({ isTouchDown: false })
+                }} // 触摸操作结束时触发，比如"touchUp"（手指抬起离开屏幕）
+            >
+                {this.state.indexArr.map((item, index) => (
+                    <View key={index} style={styles.sectionViewStyle}>
+                        <Text style={[styles.sectionItemStyle, (this.state.isTouchDown && this.state.index == index) && { backgroundColor: "#196FF0", color: "#fff" }]} >
+                            {item}
+                        </Text>
+                    </View>
+                ))}
+            </View>
             {
-                'A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,#'.split(',').map((item, index) => (
-                    <Text
-                        key={index}
-                        style={[styles.sectionItemStyle, (this.state.isTouchDown && this.state.index == index) && { backgroundColor: "#196FF0", color: "#fff" }]}
-                    >
-                        {item}
-                    </Text>
-                ))
+                this.state.isTouchDown &&
+                <View pointerEvents='box-none' style={{ position: 'absolute', width: "100%", alignItems: "center" }}>
+                    <View style={{ width: 60, height: 60, backgroundColor: "rgba(0,0,0,0.3)", borderRadius: 5, alignItems: "center", justifyContent: "center" }}>
+                        <Text style={{ color: "#fff", fontSize: 27, fontWeight: "bold" }}>{this.state.indexArr[this.state.index]}</Text>
+                    </View>
+                </View>
             }
-        </View>
+        </React.Fragment>
     )
 
     TopBar = () => {
@@ -319,7 +349,9 @@ class FriendList extends React.Component {
     render = () => (
         <View style={styles.container}>
             <StatusBar translucent={true} backgroundColor="transparent" barStyle='dark-content' />
-            <this.TopBar />
+            <View onLayout={e => this.setState({ titleHeight: e.nativeEvent.layout.height })}>
+                <this.TopBar />
+            </View>
             <View style={{ justifyContent: "center" }}>
                 <FlatList
                     ref={selectUser => this.selectUser = selectUser}
@@ -397,7 +429,7 @@ const styles = StyleSheet.create({
     },
     rowStyle: {
         lineHeight: rowHeight,
-        width: width,
+        flex: 1,
         color: "#333",
         fontSize: 16,
         fontWeight: "500",
@@ -420,17 +452,19 @@ const styles = StyleSheet.create({
     },
     sectionItemViewStyle: {
         position: 'absolute',
-        justifyContent: "space-around",
-        width: 10,
-        height: sectionHeight,
-        right: 18
+        right: 15
+    },
+    sectionViewStyle: {
+        borderRadius: 6,
+        marginVertical: 3,
+        height: 12,
+        width: 12,
+        overflow: "hidden"
     },
     sectionItemStyle: {
         textAlign: "center",
         fontSize: 10,
-        color: "#666",
-        height: 12,
-        borderRadius: 6
+        color: "#666"
     },
     avatar: {
         width: 38,

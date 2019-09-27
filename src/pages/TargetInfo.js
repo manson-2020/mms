@@ -7,7 +7,7 @@ import TopBar from './components/TopBar';
 class TargetInfo extends React.Component {
     constructor(props) {
         super(props);
-        this.targetInfo = props.navigation.state.params.targetInfo;
+        this.targetInfo = props.navigation.getParam("targetInfo");
         this.state = {
             userInfo: Object(),
             groupInfo: Object(),
@@ -19,12 +19,15 @@ class TargetInfo extends React.Component {
             'Warning: componentWillMount is deprecated',
             'Warning: componentWillReceiveProps is deprecated',
         ]);
-        Platform.OS == "android" && BackHandler.addEventListener('hardwareBackPress', this.onBackButtonPressAndroid);
+        Platform.OS == "android" && BackHandler.addEventListener('hardwareBackPress', this.goBack);
     }
 
-    onBackButtonPressAndroid = () => {
-        this.props.navigation.navigate("AuthLoading")
-        return true; //返回true, 不执行系统操作。
+    goBack = () => {
+        const { getParam, goBack } = this.props.navigation;
+        // console.warn(getParam("key"));
+        getParam("key") && getParam("refresh")();
+        goBack(getParam("key"));
+        return true;
     }
 
     componentWillMount() {
@@ -67,7 +70,7 @@ class TargetInfo extends React.Component {
                     mode: "cors",
                     body: formDataObject({
                         token: token,
-                        userid: this.state.userInfo.ry_userid,
+                        userid: this.targetInfo.userid || this.targetInfo.ry_userid,
                     })
                 }).then(result => {
                     if (result.code == 200) {
@@ -83,8 +86,8 @@ class TargetInfo extends React.Component {
                         method: 'post',
                         mode: "cors",
                         body: formDataObject({
-                            token: token,
-                            userid: this.state.userInfo.ry_userid,
+                            token,
+                            userid: this.targetInfo.userid || this.targetInfo.ry_userid,
                             nickname: this.state.remarks
                         })
                     }).then(result => {
@@ -122,7 +125,7 @@ class TargetInfo extends React.Component {
                     this.state.userInfo.is_friend ?
                         <TopBar
                             leftIcon="icon_back_white"
-                            leftPress={() => this.props.navigation.navigate("AuthLoading")}
+                            leftPress={() => this.goBack()}
                             rightIcon="icon_option"
                             rightBtnStyle={styles.rightBtnStyle}
                             rightPress={() => { this.props.navigation.navigate('DataSetting', this.targetInfo) }}
@@ -130,7 +133,7 @@ class TargetInfo extends React.Component {
                         :
                         <TopBar
                             leftIcon="icon_back_white"
-                            leftPress={() => this.props.navigation.navigate("AuthLoading")}
+                            leftPress={() => this.goBack()}
                             rightIcon="icon_option"
                             rightBtnStyle={styles.rightBtnStyle}
                             rightPress={() => alert("添加好友过后才能点哦～")}
@@ -256,8 +259,10 @@ class TargetInfo extends React.Component {
                                 (this.state.userInfo.is_friend ?
                                     <View style={styles.optionContainer}>
                                         <TouchableOpacity
-                                            onPress={() => this.props.navigation.navigate('ChatBox', this.targetInfo)
-                                            }>
+                                            onPress={() => {
+                                                const { navigate, state, getParam } = this.props.navigation;
+                                                navigate('ChatBox', { ...this.targetInfo, key: getParam("key") || state.key, refresh: getParam("refresh") })
+                                            }}>
                                             <View style={styles.optionView}>
                                                 <Image style={styles.iconBtn} source={require('../assets/images/icon-sendMsg.png')} />
                                                 <Text style={styles.optionText}>发消息</Text>

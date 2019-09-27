@@ -280,26 +280,6 @@ const styles = StyleSheet.create({
         height: 38,
         borderRadius: 19
     },
-    checkBox: {
-        width: 16,
-        height: 16,
-        borderRadius: 8,
-        marginLeft: 20,
-        alignItems: "center",
-        justifyContent: "center"
-    },
-    icon_checked: {
-        width: 10,
-        height: 8
-    },
-    rightBtnStyle: {
-        color: "#fff",
-        lineHeight: 30,
-        borderRadius: 5,
-        overflow: "hidden",
-        paddingHorizontal: 15,
-        backgroundColor: "#196FF0"
-    },
     searchContainer: {
         alignItems: "center",
         marginTop: 9,
@@ -318,13 +298,6 @@ const styles = StyleSheet.create({
         marginRight: 20,
         flex: 1
     },
-
-    TextActive: {
-        color: "#2375F1"
-    },
-    ViewActive: {
-        backgroundColor: "#2375F1"
-    }
 });
 
 export default MobileContacts;

@@ -26,7 +26,6 @@ import {
 import { PermissionsAndroid } from 'react-native';
 
 import AsyncStorage from '@react-native-community/async-storage';
-import EventBus from 'react-native-event-bus'
 import moment from 'moment';
 import TopBar from './components/TopBar';
 import { CONNECT_SUCCESS_RONGCLOUD, MESSAGE_CHANGE, CONVERSATION_REFRESH } from '../../static'
@@ -44,7 +43,6 @@ class Message extends React.Component {
             showOption: true,
             showInput: false,
             flatlistHeight: 0,
-            angle: -45,
             searchValue: false,
             data: [],
             nativeEvent: null,
@@ -223,8 +221,9 @@ class Message extends React.Component {
     }
 
     showOption() {
-        this.setState({ showOption: !this.state.showOption, angle: 0 });
-        Animated.timing(this.state.fadeAnim, { toValue: this.state.showOption ? 118 : 0, duration: 300, }).start();
+        this.setState({ showOption: !this.state.showOption }, () => {
+            Animated.timing(this.state.fadeAnim, { toValue: this.state.showOption ? 118 : 0, duration: 300, }).start();
+        });
     }
 
     /**
@@ -360,14 +359,6 @@ class Message extends React.Component {
     }
 
     /**
-     * 扫描二维码
-     */
-    openQrcode() {
-        const { navigation } = this.props;
-        navigation.navigate('QrScand')
-    }
-
-    /**
      * 选择tip相应对应的操作
      * @param key
      */
@@ -398,7 +389,7 @@ class Message extends React.Component {
                 <TopBar title="彩信" rightIcon="icon_plus" rightPress={this.showOption.bind(this)} />
                 <Animated.View style={{ overflow: "hidden", height: this.state.fadeAnim }}>
                     <View style={styles.optionMain}>
-                        <TouchableOpacity onPress={() => this.openQrcode()}>
+                        <TouchableOpacity onPress={() => this.props.navigation.navigate('QrScand', { refresh: () => this.showOption() })}>
                             <View style={styles.optionContent}>
                                 <Image style={{ width: 22, height: 22 }}
                                     source={require('../assets/images/scan-icon.png')} />
