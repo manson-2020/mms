@@ -93,7 +93,6 @@ class AddressBook extends React.Component {
         </React.Fragment>
     )
 
-
     renderItem = info => (
         <TouchableOpacity onPress={() => this.props.navigation.navigate('TargetInfo', { targetInfo: info.item })}>
             <View style={styles.itemContainer}>

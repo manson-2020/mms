@@ -71,15 +71,15 @@ const TabNavigator = createMaterialTopTabNavigator({
             ),
         },
     },
-    /*  LifeCircle: {
-         screen: LifeCircle,
-         navigationOptions: {
-             tabBarLabel: '生活圈',
-             tabBarIcon: ({ tintColor, focused }) => (
-                 <TabBarIcon focused={focused} iconName="lc" />
-             ),
-         }
-     }, */
+    LifeCircle: {
+        screen: LifeCircle,
+        navigationOptions: {
+            tabBarLabel: '生活圈',
+            tabBarIcon: ({ tintColor, focused }) => (
+                <TabBarIcon focused={focused} iconName="lc" />
+            ),
+        }
+    },
     My: {
         screen: My,
         navigationOptions: {

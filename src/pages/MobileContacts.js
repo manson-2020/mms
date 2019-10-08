@@ -109,7 +109,21 @@ class MobileContacts extends React.Component {
                 keyExtractor={(item, index) => index} // 每个item都有唯一的key
                 ItemSeparatorComponent={() => <View style={styles.separtorStyle} />} // 分割线
                 ListFooterComponent={() => this.state.friendList.length ? <View style={{ height: 200 }}></View> : null} // 尾部组件
-                ListEmptyComponent={<View style={styles.noDataViewStyle}><Text style={styles.noDataSubViewStyle}>加载中。。。</Text></View>} // 没有数据时显示的组件
+                // ListEmptyComponent={<View style={styles.noDataViewStyle}><Text style={styles.noDataSubViewStyle}>加载中。。。</Text></View>} // 没有数据时显示的组件
+                ListEmptyComponent={() => (
+                    <View style={{
+                        // height: this.state.flatlistHeight,
+                        flex: 1,
+                        backgroundColor: "#F5F5F5",
+                        alignItems: "center",
+                        justifyContent: "center"
+                    }}>
+                        <Image style={{ width: 136, height: 99 }}
+                            source={require("../assets/images/default_message_bg.png")} />
+                        <Text style={{ color: "#999", marginTop: 16 }}>暂无新消息</Text>
+                    </View>
+                )}
+
             />
             {this.state.showRightIndex && <this.sectionIndex />}
         </React.Fragment>
@@ -117,7 +131,6 @@ class MobileContacts extends React.Component {
 
 
     renderItem = info => (
-
         <View style={styles.itemContainer}>
             <Image source={{ uri: info.item.header_img }} style={styles.avatar} />
             <Text style={styles.rowStyle}>

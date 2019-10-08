@@ -60,6 +60,7 @@ export default class Option extends React.Component {
     }
 
     onBackButtonPressAndroid = () => {
+        let { navigation } = this.props
         if (this.state.showHeaderPopup || this.state.NickNamePopup || this.state.QrCodePopup || this.state.SexPopup || this.state.AreaPopup || this.state.TiesNumberPopup) {
             this.setState({
                 NickNamePopup: false,
@@ -69,7 +70,8 @@ export default class Option extends React.Component {
                 TiesNumberPopup: false,
                 showHeaderPopup: false
             });
-            return true; //返回true, 不执行系统操作。
+            navigation.goBack();
+            // return true; //返回true, 不执行系统操作。
         }
     }
 

@@ -308,7 +308,6 @@ class TargetInfo extends React.Component {
 
                 </TouchableWithoutFeedback>
             </LinearGradient>
-
         )
     }
 }

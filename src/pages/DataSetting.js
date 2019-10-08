@@ -1,6 +1,7 @@
 import React from 'react';
-import { Image, View, Text, StyleSheet, StatusBar, Switch, TouchableOpacity, TouchableHighlight } from 'react-native';
+import { Image, View, Text, StyleSheet, StatusBar, TouchableOpacity, TouchableHighlight } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
+import Switch from 'react-native-switchbutton';
 import TopBar from './components/TopBar';
 
 
@@ -51,7 +52,7 @@ class DataSetting extends React.Component {
                     <View style={[styles.list, styles.topList]}>
                         <Text style={[styles.text, styles.color_333]}>加入黑名单</Text>
                         <Switch
-                            trackColor={{ false: "#F0F0F0", true: "#196FF0" }}
+                            onTintColor="#196FF0"
                             onValueChange={value => this.setState({ falseSwitchIsOn: value })}
                             style={{ marginBottom: 10, marginTop: 10 }}
                             value={this.state.falseSwitchIsOn}

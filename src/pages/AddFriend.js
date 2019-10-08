@@ -104,15 +104,7 @@ class AddFriend extends React.Component {
      */
     openQrcode() {
         const { navigation } = this.props;
-        navigation.navigate('QrScand', {
-            /**
-             * 接收扫描结果
-             * @param res
-             */
-            callBack: (res) => {
-                alert(JSON.stringify(res))
-            }
-        })
+        navigation.navigate('QrScand')
     }
 
     newFriendList = (item, index) => (

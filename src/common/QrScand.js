@@ -124,16 +124,19 @@ class QrScand extends React.Component {
             if (this.flag) return;
             const { navigate, state, getParam } = this.props.navigation;
             //e.data.indexOf("group")返回0表示群组，返回-1表示用户
-            navigate(
-                "TargetInfo",
-                {
-                    targetInfo: { [!e.data.indexOf("group") ? "groupid" : "userid"]: e.data },
-                    key: state.key,
-                    refresh: getParam("refresh")
-                }
-            );
-            this.flag = true;
-
+            if (e.data.length == 32 || !e.data.indexOf("group")) {
+                this.flag = true;
+                navigate(
+                    "TargetInfo",
+                    {
+                        targetInfo: { [!e.data.indexOf("group") ? "groupid" : "userid"]: e.data },
+                        key: state.key,
+                        refresh: getParam("refresh")
+                    }
+                );
+            } else {
+                alert(e.data)
+            }
         } else {
             alert('扫描失败,对准二维码继续扫描')
         }

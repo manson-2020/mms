@@ -203,7 +203,7 @@ class ChatBox extends React.Component {
     onBackButtonPressAndroid = () => {
         const { getParam, goBack } = this.props.navigation;
         goBack(getParam("key"));
-        return true; //返回true, 不执行系统操作。
+        // return true; //返回true, 不执行系统操作。
     }
 
     componentWillUnmount() {

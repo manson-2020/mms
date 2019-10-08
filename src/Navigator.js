@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, ActivityIndicator, StatusBar, DeviceEventEmitter } from 'react-native';
 import { createAppContainer, createStackNavigator, createSwitchNavigator } from 'react-navigation';
 import AsyncStorage from '@react-native-community/async-storage';
-import SplashScreen from 'react-native-splash-screen'
+import SplashScreen from 'react-native-splash-screen';
 import { init, connect, addReceiveMessageListener } from "rongcloud-react-native-imlib";
 import pinyin from 'pinyin';
 import Config from "./config.json";
@@ -156,7 +156,6 @@ class AuthLoadingScreen extends React.Component {
         init(Config.AppKey);
         this._bootstrapAsync();
         //监听接收消息
-
         this.addListener = addReceiveMessageListener(result => {
             //取反表示群聊
             if (result.message.targetId.indexOf("group")) {
@@ -199,6 +198,7 @@ class AuthLoadingScreen extends React.Component {
         );
     }
 }
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
